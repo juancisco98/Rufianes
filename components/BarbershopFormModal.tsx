@@ -119,9 +119,9 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+      <div className="bg-white dark:bg-iosDark-bg2 w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[95vh] sm:max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-white/10 shrink-0 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-ios-border dark:border-iosDark-border shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/20 rounded-xl flex items-center justify-center">
               <Scissors className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -130,7 +130,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
               {mode === 'add' ? 'Nueva Barbería' : 'Editar Barbería'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400">
+          <button onClick={onClose} className="p-2 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-full text-gray-400">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -146,7 +146,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Rufianes Palermo"
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
           </div>
 
@@ -160,7 +160,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 onChange={e => setAddressInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleGeocode()}
                 placeholder="Av. Santa Fe 3454, Palermo, Buenos Aires"
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex-1 px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
               <button
                 onClick={handleGeocode}
@@ -181,7 +181,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
 
           {/* Mini mapa con marker draggable */}
           {coordinates && (
-            <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10" style={{ height: 180 }}>
+            <div className="rounded-2xl overflow-hidden border border-ios-border dark:border-iosDark-border" style={{ height: 180 }}>
               <MapContainer
                 key={`${coordinates[0]}-${coordinates[1]}`}
                 center={coordinates}
@@ -215,7 +215,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 value={neighborhood}
                 onChange={e => setNeighborhood(e.target.value)}
                 placeholder="Palermo"
-                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
             </div>
             <div>
@@ -225,7 +225,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="+54 11 1234-5678"
-                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
             </div>
           </div>
@@ -239,7 +239,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 value={managerName}
                 onChange={e => setManagerName(e.target.value)}
                 placeholder="Nombre del encargado"
-                className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
             </div>
             <div>
@@ -248,7 +248,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 <button
                   type="button"
                   onClick={() => setChairCount(v => Math.max(1, v - 1))}
-                  className="w-10 h-10 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-white font-bold text-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                  className="w-10 h-10 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-700 dark:text-white font-bold text-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   −
                 </button>
@@ -256,7 +256,7 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                 <button
                   type="button"
                   onClick={() => setChairCount(v => Math.min(20, v + 1))}
-                  className="w-10 h-10 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-white font-bold text-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                  className="w-10 h-10 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-700 dark:text-white font-bold text-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   +
                 </button>
@@ -265,11 +265,11 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
           </div>
 
           {/* Horarios de apertura — colapsable */}
-          <div className="border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
+          <div className="border border-ios-border dark:border-iosDark-border rounded-2xl overflow-hidden">
             <button
               type="button"
               onClick={() => setShowHoursSection(v => !v)}
-              className="w-full px-4 py-3.5 flex items-center justify-between bg-gray-50 dark:bg-slate-800 text-sm font-bold text-gray-700 dark:text-white"
+              className="w-full px-4 py-3.5 flex items-center justify-between bg-ios-grouped dark:bg-iosDark-grouped text-sm font-bold text-gray-700 dark:text-white"
             >
               <span>Horarios de apertura</span>
               {showHoursSection ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -297,14 +297,14 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
                             type="time"
                             value={dh.open}
                             onChange={e => updateDay(day, { open: e.target.value })}
-                            className="flex-1 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="flex-1 px-2 py-1.5 rounded-lg border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
                           />
                           <span className="text-gray-400 text-xs shrink-0">—</span>
                           <input
                             type="time"
                             value={dh.close}
                             onChange={e => updateDay(day, { close: e.target.value })}
-                            className="flex-1 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="flex-1 px-2 py-1.5 rounded-lg border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
                           />
                         </>
                       ) : (
@@ -325,13 +325,13 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
               onChange={e => setNotes(e.target.value)}
               rows={2}
               placeholder="Observaciones internas..."
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
             />
           </div>
 
           {/* Estado activo (solo en edit) */}
           {mode === 'edit' && (
-            <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between bg-ios-grouped dark:bg-iosDark-grouped rounded-xl px-4 py-3">
               <span className="text-sm font-semibold text-gray-700 dark:text-white">Barbería activa</span>
               <button
                 type="button"
@@ -345,10 +345,10 @@ const BarbershopFormModal: React.FC<BarbershopFormModalProps> = ({ mode, initial
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-white/10 shrink-0 flex gap-3">
+        <div className="px-6 py-4 border-t border-ios-border dark:border-iosDark-border shrink-0 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+            className="flex-1 py-3 rounded-xl border border-ios-border dark:border-iosDark-border text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped transition-all"
           >
             Cancelar
           </button>

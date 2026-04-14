@@ -57,9 +57,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   const periodLabel = period === 'today' ? 'Hoy' : period === 'week' ? 'Últimos 7 días' : period === 'month' ? 'Este mes' : 'Período personalizado';
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 overflow-y-auto">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg overflow-y-auto">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
+      <div className="p-6 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <BarChart3 className="w-6 h-6 text-amber-500" />
@@ -76,7 +76,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                 period === p
                   ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
+                  : 'bg-ios-grouped dark:bg-iosDark-grouped text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700'
               }`}
             >
               {p === 'today' ? 'Hoy' : p === 'week' ? 'Esta semana' : p === 'month' ? 'Este mes' : 'Personalizado'}
@@ -85,9 +85,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           {period === 'custom' && (
             <div className="flex gap-2 mt-2 w-full">
               <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none" />
+                className="flex-1 px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none" />
               <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none" />
+                className="flex-1 px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none" />
             </div>
           )}
         </div>
@@ -114,7 +114,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         </div>
 
         {/* Desglose por método de pago */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-gray-100 dark:border-white/10">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-5 border border-ios-border dark:border-iosDark-border">
           <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-4">Desglose por método de pago</h3>
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -134,7 +134,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         {/* Gráfico por barbería */}
         {chartData.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-gray-100 dark:border-white/10">
+          <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-5 border border-ios-border dark:border-iosDark-border">
             <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-4">Revenue por barbería</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -153,7 +153,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
         {/* Ranking de barberos */}
         {topBarbers.length > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-gray-100 dark:border-white/10">
+          <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-5 border border-ios-border dark:border-iosDark-border">
             <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-4">Ranking de barberos</h3>
             <div className="space-y-3">
               {topBarbers.map((b, idx) => {
@@ -176,7 +176,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
                           <span className="text-xs text-gray-400 ml-2">{b.cuts} cortes</span>
                         </div>
                       </div>
-                      <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-1.5">
+                      <div className="w-full bg-ios-grouped dark:bg-iosDark-grouped rounded-full h-1.5">
                         <div
                           className="bg-amber-500 h-1.5 rounded-full transition-all"
                           style={{ width: `${pct}%` }}
@@ -191,7 +191,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         )}
 
         {/* Tabla por barbería */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-gray-100 dark:border-white/10">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-5 border border-ios-border dark:border-iosDark-border">
           <h3 className="text-sm font-bold text-gray-700 dark:text-slate-300 mb-4">Detalle por barbería</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

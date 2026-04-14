@@ -48,9 +48,9 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
     setExpandedSection(prev => prev === section ? null : section);
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 overflow-y-auto">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg overflow-y-auto">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
+      <div className="px-6 py-5 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0">
         <div className="flex items-center gap-3">
           <Settings className="w-5 h-5 text-amber-500" />
           <h1 className="text-xl font-black text-gray-900 dark:text-white">Ajustes</h1>
@@ -61,7 +61,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
       <div className="p-4 space-y-3">
 
         {/* ── BARBERÍAS ── */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
           <button
             onClick={() => toggle('barbershops')}
             className="w-full px-5 py-4 flex items-center justify-between"
@@ -101,13 +101,13 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                   </div>
                   <div className="flex items-center gap-2 ml-3 shrink-0">
                     {!shop.isActive && (
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 bg-ios-grouped dark:bg-iosDark-grouped px-2 py-0.5 rounded-full">
                         Inactiva
                       </span>
                     )}
                     <button
                       onClick={() => { setEditingShop(shop); setShowShopModal(true); }}
-                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 dark:text-slate-500 hover:text-amber-500 transition-colors"
+                      className="p-1.5 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-lg text-gray-400 dark:text-slate-500 hover:text-amber-500 transition-colors"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
@@ -119,7 +119,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* ── SERVICIOS ── */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
           <button
             onClick={() => toggle('services')}
             className="w-full px-5 py-4 flex items-center justify-between"
@@ -171,7 +171,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                     <div className="flex items-center gap-1 ml-3 shrink-0">
                       <button
                         onClick={() => { setEditingService(service); setShowServiceModal(true); }}
-                        className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-400 hover:text-indigo-500 transition-colors"
+                        className="p-1.5 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-lg text-gray-400 hover:text-indigo-500 transition-colors"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
@@ -194,7 +194,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
                       ) : (
                         <button
                           onClick={() => setDeactivatingId(service.id)}
-                          className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg text-gray-300 dark:text-slate-600 hover:text-red-400 transition-colors"
+                          className="p-1.5 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-lg text-gray-300 dark:text-slate-600 hover:text-red-400 transition-colors"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -208,7 +208,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = ({
         </div>
 
         {/* ── BARBEROS ── */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
           <button
             onClick={() => toggle('barbers')}
             className="w-full px-5 py-4 flex items-center justify-between"

@@ -18,6 +18,11 @@ import {
   NotificationType,
   WeekSchedule,
   ShiftClosingMetadata,
+  CashAudit,
+  LigaEntry,
+  LigaConfig,
+  LigaClient,
+  LigaMonthlyClosing,
 } from '../types';
 
 import {
@@ -28,6 +33,10 @@ import {
   DbHaircutSessionRow,
   DbShiftClosingRow,
   DbNotificationRow,
+  DbLigaEntryRow,
+  DbLigaConfigRow,
+  DbLigaClientRow,
+  DbLigaMonthlyClosingRow,
 } from '../types/dbRows';
 
 // ─── BARBERSHOP ───────────────────────────────────────────────────────────────
@@ -47,6 +56,7 @@ export const dbToBarbershop = (row: DbBarbershopRow): Barbershop => ({
   openingHours: row.opening_hours
     ? (row.opening_hours as unknown as WeekSchedule)
     : undefined,
+  ligaEnabled: row.liga_enabled ?? undefined,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
@@ -67,8 +77,156 @@ export const barbershopToDb = (shop: Barbershop): Record<string, unknown> => {
   // Solo incluir si la columna existe (requiere migración SQL en Supabase)
   if (shop.chairCount !== undefined) payload.chair_count = shop.chairCount;
   if (shop.openingHours !== undefined) payload.opening_hours = shop.openingHours;
+  if (shop.ligaEnabled !== undefined) payload.liga_enabled = shop.ligaEnabled;
   return payload;
 };
+
+// ─── LIGA ENTRY ───────────────────────────────────────────────────────────────
+
+export const dbToLigaEntry = (row: DbLigaEntryRow): LigaEntry => {
+  const d1 = row.dice_1 ?? undefined;
+  const d2 = row.dice_2 ?? undefined;
+  const d3 = row.dice_3 ?? undefined;
+  const sumFromIndividual = (d1 ?? 0) + (d2 ?? 0) + (d3 ?? 0);
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    barbershopId: row.barbershop_id,
+    barberId: row.barber_id,
+    clientName: row.client_name,
+    clientPhone: row.client_phone ?? undefined,
+    ligaClientId: row.liga_client_id ?? undefined,
+    month: row.month,
+    dice1: d1,
+    dice2: d2,
+    dice3: d3,
+    diceSum: row.dice_sum ?? sumFromIndividual,
+    isService: row.is_service ?? true,
+    servicePoints: row.service_points,
+    extraDiceCount: row.extra_dice_count,
+    extraDicePoints: row.extra_dice_points,
+    extraDiceRevenue: Number(row.extra_dice_revenue),
+    extraDiceCommission: Number(row.extra_dice_commission),
+    totalPoints: row.total_points,
+    createdAt: row.created_at,
+  };
+};
+
+export const ligaEntryToDb = (e: LigaEntry): Record<string, unknown> => {
+  // Lección 10: campos nuevos (dice_sum, is_service) se omiten si undefined
+  // para no romper si la migración aún no corrió.
+  const payload: Record<string, unknown> = {
+    id: e.id,
+    session_id: e.sessionId,
+    barbershop_id: e.barbershopId,
+    barber_id: e.barberId,
+    client_name: e.clientName.trim(),
+    client_phone: e.clientPhone ?? null,
+    month: e.month,
+    service_points: e.servicePoints,
+    extra_dice_count: e.extraDiceCount,
+    extra_dice_points: e.extraDicePoints,
+    extra_dice_revenue: e.extraDiceRevenue,
+    extra_dice_commission: e.extraDiceCommission,
+    // total_points es GENERATED en DB — NO enviar
+  };
+  if (e.diceSum !== undefined) payload.dice_sum = e.diceSum;
+  if (e.isService !== undefined) payload.is_service = e.isService;
+  if (e.dice1 !== undefined) payload.dice_1 = e.dice1;
+  if (e.dice2 !== undefined) payload.dice_2 = e.dice2;
+  if (e.dice3 !== undefined) payload.dice_3 = e.dice3;
+  if (e.ligaClientId !== undefined) payload.liga_client_id = e.ligaClientId;
+  return payload;
+};
+
+// ─── LIGA CLIENT ──────────────────────────────────────────────────────────────
+
+export const dbToLigaClient = (row: DbLigaClientRow): LigaClient => ({
+  id: row.id,
+  barbershopId: row.barbershop_id,
+  code: row.code,
+  name: row.name,
+  phone: row.phone ?? undefined,
+  notes: row.notes ?? undefined,
+  createdAt: row.created_at,
+});
+
+export const ligaClientToDb = (c: LigaClient): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {
+    id: c.id,
+    barbershop_id: c.barbershopId,
+    code: c.code,
+    name: c.name.trim(),
+  };
+  if (c.phone !== undefined) payload.phone = c.phone.trim() || null;
+  if (c.notes !== undefined) payload.notes = c.notes.trim() || null;
+  return payload;
+};
+
+// ─── LIGA CONFIG ──────────────────────────────────────────────────────────────
+
+export const dbToLigaConfig = (row: DbLigaConfigRow): LigaConfig => ({
+  barbershopId: row.barbershop_id,
+  serviceMultiplier: row.service_multiplier,
+  extraDieCost: Number(row.extra_die_cost),
+  extraDieCommission: Number(row.extra_die_commission),
+  prize1: Number(row.prize_1),
+  prize2: Number(row.prize_2),
+  prize3: Number(row.prize_3),
+  prizeLabel: row.prize_label,
+  isActive: row.is_active,
+  workingDaysPerMonth: row.working_days_per_month ?? undefined,
+  monthlyGoal: row.monthly_goal != null ? Number(row.monthly_goal) : undefined,
+  updatedAt: row.updated_at,
+});
+
+export const ligaConfigToDb = (c: LigaConfig): Record<string, unknown> => {
+  // Lección 10: los campos opcionales que dependen de migraciones se omiten
+  // si son undefined (no se envían como null) para evitar errores de schema.
+  const payload: Record<string, unknown> = {
+    barbershop_id: c.barbershopId,
+    service_multiplier: c.serviceMultiplier,
+    extra_die_cost: c.extraDieCost,
+    extra_die_commission: c.extraDieCommission,
+    prize_1: c.prize1,
+    prize_2: c.prize2,
+    prize_3: c.prize3,
+    prize_label: c.prizeLabel,
+    is_active: c.isActive,
+    updated_at: new Date().toISOString(),
+  };
+  if (c.workingDaysPerMonth !== undefined) payload.working_days_per_month = c.workingDaysPerMonth;
+  if (c.monthlyGoal !== undefined) payload.monthly_goal = c.monthlyGoal;
+  return payload;
+};
+
+// ─── LIGA MONTHLY CLOSING ─────────────────────────────────────────────────────
+
+export const dbToLigaMonthlyClosing = (row: DbLigaMonthlyClosingRow): LigaMonthlyClosing => ({
+  id: row.id,
+  barbershopId: row.barbershop_id,
+  month: row.month,
+  podium: row.podium ?? [],
+  totalRevenue: Number(row.total_revenue),
+  totalCommission: Number(row.total_commission),
+  totalPrizes: Number(row.total_prizes),
+  net: Number(row.net),
+  closedAt: row.closed_at,
+  closedBy: row.closed_by ?? undefined,
+});
+
+export const ligaMonthlyClosingToDb = (c: LigaMonthlyClosing): Record<string, unknown> => ({
+  id: c.id,
+  barbershop_id: c.barbershopId,
+  month: c.month,
+  podium: c.podium,
+  total_revenue: c.totalRevenue,
+  total_commission: c.totalCommission,
+  total_prizes: c.totalPrizes,
+  net: c.net,
+  closed_at: c.closedAt,
+  closed_by: c.closedBy ?? null,
+});
 
 // ─── BARBER ───────────────────────────────────────────────────────────────────
 
@@ -82,24 +240,30 @@ export const dbToBarber = (row: DbBarberRow): Barber => ({
   specialties: row.specialties ?? [],
   commissionPct: Number(row.commission_pct),
   isActive: row.is_active,
+  isManager: row.is_manager ?? undefined,
   hireDate: row.hire_date ?? undefined,
   notes: row.notes ?? undefined,
   createdAt: row.created_at,
 });
 
-export const barberToDb = (barber: Barber): Record<string, unknown> => ({
-  id: barber.id,
-  barbershop_id: barber.barbershopId,
-  name: barber.name,
-  phone: barber.phone ?? null,
-  email: barber.email ? barber.email.trim().toLowerCase() : null,
-  photo_url: barber.photoUrl ?? null,
-  specialties: barber.specialties,
-  commission_pct: barber.commissionPct,
-  is_active: barber.isActive,
-  hire_date: barber.hireDate ?? null,
-  notes: barber.notes ?? null,
-});
+export const barberToDb = (barber: Barber): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {
+    id: barber.id,
+    barbershop_id: barber.barbershopId,
+    name: barber.name,
+    phone: barber.phone ?? null,
+    email: barber.email ? barber.email.trim().toLowerCase() : null,
+    photo_url: barber.photoUrl ?? null,
+    specialties: barber.specialties,
+    commission_pct: barber.commissionPct,
+    is_active: barber.isActive,
+    hire_date: barber.hireDate ?? null,
+    notes: barber.notes ?? null,
+  };
+  // Solo incluir si la columna existe (requiere migración 20260408_manager_and_cash_audit)
+  if (barber.isManager !== undefined) payload.is_manager = barber.isManager;
+  return payload;
+};
 
 // ─── SERVICE ──────────────────────────────────────────────────────────────────
 
@@ -202,30 +366,35 @@ export const dbToShiftClosing = (row: DbShiftClosingRow): ShiftClosing => ({
   expensesCash: Number(row.expenses_cash),
   expensesDetail: row.expenses_detail ?? [],
   netCashToHand: row.net_cash_to_hand != null ? Number(row.net_cash_to_hand) : undefined,
+  cashAudit: row.cash_audit ? (row.cash_audit as unknown as CashAudit) : undefined,
   notes: row.notes ?? undefined,
   status: row.status as 'OPEN' | 'CLOSED',
   createdAt: row.created_at,
 });
 
-export const shiftClosingToDb = (closing: ShiftClosing): Record<string, unknown> => ({
-  id: closing.id,
-  barbershop_id: closing.barbershopId,
-  barber_id: closing.barberId,
-  shift_date: closing.shiftDate,
-  started_at: closing.startedAt ?? null,
-  closed_at: closing.closedAt,
-  total_cuts: closing.totalCuts,
-  total_cash: closing.totalCash,
-  total_card: closing.totalCard,
-  total_transfer: closing.totalTransfer,
-  total_revenue: closing.totalRevenue,
-  total_commission: closing.totalCommission,
-  expenses_cash: closing.expensesCash,
-  expenses_detail: closing.expensesDetail,
-  net_cash_to_hand: closing.netCashToHand ?? null,
-  notes: closing.notes ?? null,
-  status: closing.status,
-});
+export const shiftClosingToDb = (closing: ShiftClosing): Record<string, unknown> => {
+  const payload: Record<string, unknown> = {
+    id: closing.id,
+    barbershop_id: closing.barbershopId,
+    barber_id: closing.barberId,
+    shift_date: closing.shiftDate,
+    started_at: closing.startedAt ?? null,
+    closed_at: closing.closedAt,
+    total_cuts: closing.totalCuts,
+    total_cash: closing.totalCash,
+    total_card: closing.totalCard,
+    total_transfer: closing.totalTransfer,
+    total_revenue: closing.totalRevenue,
+    total_commission: closing.totalCommission,
+    expenses_cash: closing.expensesCash,
+    expenses_detail: closing.expensesDetail,
+    net_cash_to_hand: closing.netCashToHand ?? null,
+    notes: closing.notes ?? null,
+    status: closing.status,
+  };
+  if (closing.cashAudit !== undefined) payload.cash_audit = closing.cashAudit;
+  return payload;
+};
 
 // ─── NOTIFICATION ─────────────────────────────────────────────────────────────
 

@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import {
   Scissors, CheckCircle, LogOut, Clock, DollarSign, TrendingUp,
-  Calendar, Search, ChevronLeft, ChevronRight, Sun, Moon, Plus,
+  Calendar, Search, ChevronLeft, ChevronRight, Sun, Moon, Plus, Trophy, ShieldCheck,
 } from 'lucide-react';
+import BarberLigaTab from './liga/BarberLigaTab';
+import { useLiga } from '../hooks/useLiga';
 import { toast } from 'sonner';
 import { User, HaircutSession, ShiftClosing, Service, Barber, Barbershop } from '../types';
 import { PAYMENT_METHOD_LABELS } from '../constants';
@@ -71,7 +73,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [isOpeningShift, setIsOpeningShift] = useState(false);
-  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'history' | 'liga'>('today');
 
   const [historyFilter, setHistoryFilter] = useState<'day' | 'month'>('day');
   const [historyDay, setHistoryDay] = useState(() => new Date().toISOString().slice(0, 10));
@@ -116,6 +118,11 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
   // ── Métricas ──────────────────────────────────────────────────────────────
   const todayRevenue    = todaySessions.reduce((sum, s) => sum + s.price, 0);
   const todayCommission = todaySessions.reduce((sum, s) => sum + s.commissionAmt, 0);
+
+  // ── Liga (solo si la sucursal la tiene activa) ────────────────────────────
+  const { getBarberLigaTodayMetrics } = useLiga();
+  const ligaTodayMetrics = shop?.ligaEnabled ? getBarberLigaTodayMetrics(barberId) : null;
+  const ligaCommissionToday = ligaTodayMetrics?.commission ?? 0;
   const historyRevenue    = historySessions.reduce((sum, s) => sum + s.price, 0);
   const historyCommission = historySessions.reduce((sum, s) => sum + s.commissionAmt, 0);
   const historyCash     = historySessions.filter(s => s.paymentMethod === 'CASH').reduce((sum, s) => sum + s.price, 0);
@@ -154,7 +161,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
   // ── Loading guard ─────────────────────────────────────────────────────────
   if (!barber) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-slate-950">
+      <div className="flex items-center justify-center h-screen bg-ios-bg dark:bg-iosDark-bg">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
           <p className="text-sm text-gray-500 dark:text-slate-400">Cargando...</p>
@@ -164,10 +171,10 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-white flex flex-col">
+    <div className="h-screen bg-ios-bg dark:bg-iosDark-bg text-gray-900 dark:text-white flex flex-col overflow-hidden">
 
       {/* ── HEADER (sticky, glass morphism) ──────────────────────────────── */}
-      <header className="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur-2xl border-b border-gray-100 dark:border-white/10 shrink-0">
+      <header className="sticky top-0 z-30 bg-white/72 dark:bg-iosDark-surface backdrop-blur-iosLg border-b border-ios-border dark:border-iosDark-border shrink-0">
         <div className="px-4 sm:px-5 h-14 flex items-center justify-between max-w-2xl mx-auto w-full">
 
           {/* Left: logo + identity */}
@@ -175,8 +182,15 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-sm shadow-amber-500/20 shrink-0">
               <Scissors className="w-4 h-4 text-white" />
             </div>
-            <div className="leading-tight">
-              <p className="text-sm font-black text-gray-900 dark:text-white">{shop?.name ?? 'Rufianes'}</p>
+            <div className="leading-tight min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-sm font-black text-gray-900 dark:text-white truncate">{shop?.name ?? 'Rufianes'}</p>
+                {barber.isManager && (
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold uppercase tracking-wider">
+                    <ShieldCheck className="w-2.5 h-2.5" /> Encargado
+                  </span>
+                )}
+              </div>
               <p className="text-[11px] text-gray-500 dark:text-slate-400">{barber.name} · {barber.commissionPct}% comisión</p>
             </div>
           </div>
@@ -202,12 +216,12 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
       </header>
 
       {/* ── SCROLL CONTENT ───────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto pb-40">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pb-32">
         <div className="max-w-2xl mx-auto w-full px-4 sm:px-5 pt-4 space-y-3">
 
           {/* ── Shift status ─────────────────────────────────────────────── */}
           {!activeShift ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-sm text-center">
+            <div className="bg-white dark:bg-iosDark-bg2 rounded-3xl p-6 border border-ios-divider dark:border-iosDark-divider shadow-sm text-center">
               <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                 <Clock className="w-8 h-8 text-gray-300 dark:text-slate-600" />
               </div>
@@ -243,12 +257,13 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
           )}
 
           {/* ── KPI cards ────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className={`grid gap-2.5 ${ligaTodayMetrics ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
             {[
-              { label: 'Cortes', value: String(todaySessions.length), Icon: Scissors, c: 'amber' as const },
-              { label: 'Revenue', value: fmtCompact(todayRevenue), Icon: DollarSign, c: 'emerald' as const },
-              { label: 'Ganancia', value: fmtCompact(todayCommission), Icon: TrendingUp, c: 'indigo' as const },
-            ].map(({ label, value, Icon, c }) => (
+              { label: 'Cortes', value: String(todaySessions.length), Icon: Scissors, c: 'amber' as const, show: true },
+              { label: 'Revenue', value: fmtCompact(todayRevenue), Icon: DollarSign, c: 'emerald' as const, show: true },
+              { label: 'Ganancia', value: fmtCompact(todayCommission + ligaCommissionToday), Icon: TrendingUp, c: 'indigo' as const, show: true },
+              { label: 'Comisión Liga', value: fmtCompact(ligaCommissionToday), Icon: Trophy, c: 'amber' as const, show: !!ligaTodayMetrics },
+            ].filter(k => k.show).map(({ label, value, Icon, c }) => (
               <div key={label} className={`${KPI[c].bg} rounded-2xl p-3 sm:p-4 text-center`}>
                 <Icon className={`w-4 h-4 ${KPI[c].icon} mx-auto mb-1.5`} />
                 <p className={`text-xl font-black ${KPI[c].value} leading-none`}>{value}</p>
@@ -276,7 +291,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
               </div>
 
               {todaySessions.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                <div className="bg-white dark:bg-iosDark-bg2 rounded-3xl p-8 border border-ios-divider dark:border-iosDark-divider shadow-sm text-center">
                   <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
                     <Scissors className="w-7 h-7 text-amber-300 dark:text-amber-600" />
                   </div>
@@ -291,7 +306,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                     {todaySessions.map((s, idx) => (
                       <div
                         key={s.id}
-                        className="bg-white dark:bg-slate-900 rounded-2xl px-4 py-3.5 border border-gray-100 dark:border-white/5 shadow-sm flex items-center gap-3"
+                        className="bg-white dark:bg-iosDark-bg2 rounded-2xl px-4 py-3.5 border border-ios-divider dark:border-iosDark-divider shadow-sm flex items-center gap-3"
                       >
                         {/* Number badge */}
                         <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center shrink-0">
@@ -321,7 +336,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                   </div>
 
                   {/* Daily summary */}
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
+                  <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-divider dark:border-iosDark-divider shadow-sm overflow-hidden">
                     <div className="px-4 py-3 space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-500 dark:text-slate-400">Revenue total</span>
@@ -371,7 +386,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
               </div>
 
               {/* Navegador de fecha */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex items-center gap-2 px-3 py-2.5">
+              <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-divider dark:border-iosDark-divider shadow-sm flex items-center gap-2 px-3 py-2.5">
                 <button
                   onClick={() => historyFilter === 'day' ? shiftDay(-1) : shiftMonth(-1)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-slate-400 transition-colors active:scale-90 shrink-0"
@@ -416,7 +431,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
 
               {/* Period summary */}
               {historySessions.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-divider dark:border-iosDark-divider shadow-sm overflow-hidden">
                   <div className="px-4 pt-4 pb-3">
                     <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">
                       Resumen del período
@@ -435,7 +450,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                         <p className="text-[10px] text-gray-400 dark:text-slate-500 font-semibold mt-0.5">ganancia</p>
                       </div>
                     </div>
-                    <div className="border-t border-gray-100 dark:border-white/5 pt-3 grid grid-cols-3 gap-2">
+                    <div className="border-t border-ios-divider dark:border-iosDark-divider pt-3 grid grid-cols-3 gap-2">
                       {[
                         { label: 'Efectivo', value: historyCash, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
                         { label: 'Tarjeta',   value: historyCard, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
@@ -453,7 +468,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
 
               {/* Sessions list */}
               {historySessions.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-gray-100 dark:border-white/5 shadow-sm text-center">
+                <div className="bg-white dark:bg-iosDark-bg2 rounded-3xl p-8 border border-ios-divider dark:border-iosDark-divider shadow-sm text-center">
                   <Search className="w-8 h-8 mx-auto mb-2 text-gray-200 dark:text-slate-700" />
                   <p className="text-sm font-semibold text-gray-400 dark:text-slate-500">Sin cortes en este período</p>
                 </div>
@@ -468,7 +483,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                       ? new Date(s.startedAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
                       : null;
                     return (
-                      <div key={s.id} className="bg-white dark:bg-slate-900 rounded-2xl px-4 py-3.5 border border-gray-100 dark:border-white/5 shadow-sm flex items-center gap-3">
+                      <div key={s.id} className="bg-white dark:bg-iosDark-bg2 rounded-2xl px-4 py-3.5 border border-ios-divider dark:border-iosDark-divider shadow-sm flex items-center gap-3">
                         {/* Time / date badge */}
                         <div className="w-10 shrink-0 text-center">
                           {date && <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500">{date}</p>}
@@ -504,7 +519,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                     Cierres de turno
                   </p>
                   {historyClosings.map(sc => (
-                    <div key={sc.id} className="bg-white dark:bg-slate-900 rounded-2xl px-4 py-4 border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div key={sc.id} className="bg-white dark:bg-iosDark-bg2 rounded-2xl px-4 py-4 border border-ios-divider dark:border-iosDark-divider shadow-sm">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-sm font-black text-gray-900 dark:text-white capitalize">
                           {new Date(sc.shiftDate + 'T12:00:00').toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -528,7 +543,7 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                         </div>
                       </div>
                       {sc.expensesCash > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-white/5 flex justify-between text-xs">
+                        <div className="mt-3 pt-2.5 border-t border-ios-divider dark:border-iosDark-divider flex justify-between text-xs">
                           <span className="text-gray-400 dark:text-slate-500">Gastos efectivo</span>
                           <span className="font-bold text-red-500">-{fmt(sc.expensesCash)}</span>
                         </div>
@@ -538,6 +553,11 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {/* ─── TAB: LIGA ────────────────────────────────────────────────── */}
+          {activeTab === 'liga' && barber && shop && shop.ligaEnabled && (
+            <BarberLigaTab barber={barber} barbershop={shop} services={shopServices} />
           )}
         </div>
       </div>
@@ -556,10 +576,11 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
       )}
 
       {/* ── BOTTOM NAVIGATION ────────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-t border-gray-100 dark:border-white/10">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/72 dark:bg-iosDark-surface backdrop-blur-iosLg border-t border-ios-border dark:border-iosDark-border">
         <div className="flex max-w-2xl mx-auto">
           {([
             { id: 'today',   label: 'Hoy',       Icon: Scissors },
+            ...(shop?.ligaEnabled ? ([{ id: 'liga', label: 'Liga', Icon: Trophy }] as const) : []),
             { id: 'history', label: 'Historial',  Icon: Calendar },
           ] as const).map(({ id, label, Icon }) => (
             <button
@@ -584,18 +605,22 @@ const BarberPortal: React.FC<BarberPortalProps> = ({
       </nav>
 
       {/* ── MODALS ────────────────────────────────────────────────────────── */}
-      {showRegisterModal && barber && (
+      {barber && (
         <RegisterSessionModal
+          open={showRegisterModal}
           barber={barber}
+          barbershop={shop}
           services={shopServices}
           onSave={registerSession}
           onClose={() => setShowRegisterModal(false)}
         />
       )}
 
-      {showCloseModal && activeShift && (
+      {activeShift && (
         <ShiftClosingModal
+          open={showCloseModal}
           closing={activeShift}
+          barber={barber}
           todaySessions={todaySessions}
           onClose={closeShift}
           onDismiss={() => setShowCloseModal(false)}

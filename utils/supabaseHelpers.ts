@@ -1,9 +1,11 @@
 import { supabase } from '../services/supabaseClient';
 import { logger } from './logger';
 import { handleError } from './errorHandler';
+import { retry } from './retry';
 
 /**
- * Generic wrapper for Supabase upsert operations with optimistic updates.
+ * Generic wrapper for Supabase upsert operations.
+ * Reintenta automáticamente en errores de red. NO reintenta en RLS / constraints.
  */
 export async function supabaseUpsert<T>(
     table: string,
@@ -12,16 +14,13 @@ export async function supabaseUpsert<T>(
 ): Promise<void> {
     try {
         const rows = Array.isArray(dbRow) ? dbRow : [dbRow];
-        const { error } = await supabase
-            .from(table)
-            .upsert(rows, { onConflict: 'id' });
-
-        if (error) {
-            logger.error(`[Supabase] Error saving ${label}:`, error);
-            throw error;
-        } else {
-            logger.log(`[Supabase] ${label} saved successfully.`);
-        }
+        await retry(async () => {
+            const { error } = await supabase
+                .from(table)
+                .upsert(rows, { onConflict: 'id' });
+            if (error) throw error;
+        }, { label: `upsert:${table}` });
+        logger.log(`[Supabase] ${label} saved successfully.`);
     } catch (err) {
         logger.error(`[Supabase] Exception saving ${label}:`, err);
         throw err;
@@ -37,17 +36,14 @@ export async function supabaseDelete(
     label: string
 ): Promise<void> {
     try {
-        const { error } = await supabase
-            .from(table)
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            logger.error(`[Supabase] Error deleting ${label}:`, error);
-            throw error;
-        } else {
-            logger.log(`[Supabase] ${label} deleted: ${id}`);
-        }
+        await retry(async () => {
+            const { error } = await supabase
+                .from(table)
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+        }, { label: `delete:${table}` });
+        logger.log(`[Supabase] ${label} deleted: ${id}`);
     } catch (err) {
         logger.error(`[Supabase] Exception deleting ${label}:`, err);
         throw err;
@@ -64,17 +60,14 @@ export async function supabaseUpdate(
     label: string
 ): Promise<void> {
     try {
-        const { error } = await supabase
-            .from(table)
-            .update(updates)
-            .eq('id', id);
-
-        if (error) {
-            logger.error(`[Supabase] Error updating ${label}:`, error);
-            throw error;
-        } else {
-            logger.log(`[Supabase] ${label} updated: ${id}`);
-        }
+        await retry(async () => {
+            const { error } = await supabase
+                .from(table)
+                .update(updates)
+                .eq('id', id);
+            if (error) throw error;
+        }, { label: `update:${table}` });
+        logger.log(`[Supabase] ${label} updated: ${id}`);
     } catch (err) {
         logger.error(`[Supabase] Exception updating ${label}:`, err);
         throw err;
@@ -90,16 +83,13 @@ export async function supabaseInsert(
     label: string
 ): Promise<void> {
     try {
-        const { error } = await supabase
-            .from(table)
-            .insert(row);
-
-        if (error) {
-            logger.error(`[Supabase] Error inserting ${label}:`, error);
-            throw error;
-        } else {
-            logger.log(`[Supabase] ${label} inserted.`);
-        }
+        await retry(async () => {
+            const { error } = await supabase
+                .from(table)
+                .insert(row);
+            if (error) throw error;
+        }, { label: `insert:${table}` });
+        logger.log(`[Supabase] ${label} inserted.`);
     } catch (err) {
         logger.error(`[Supabase] Exception inserting ${label}:`, err);
         throw err;

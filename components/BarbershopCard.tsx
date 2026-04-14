@@ -38,7 +38,7 @@ const BarbershopCard: React.FC<BarbershopCardProps> = ({
 
   return (
     <div className="
-      fixed z-[1000] bg-white dark:bg-slate-900 shadow-2xl border dark:border-white/10 flex flex-col
+      fixed z-[1000] bg-white dark:bg-iosDark-bg2 shadow-2xl border border-ios-border dark:border-iosDark-border flex flex-col
       bottom-0 left-0 right-0 rounded-t-3xl max-h-[75vh]
       lg:absolute lg:bottom-auto lg:left-auto lg:top-4 lg:right-4 lg:w-80 lg:rounded-3xl lg:max-h-[calc(100vh-80px)]
     ">
@@ -48,7 +48,7 @@ const BarbershopCard: React.FC<BarbershopCardProps> = ({
       </div>
 
       {/* Header */}
-      <div className="px-5 pt-3 pb-4 lg:p-5 border-b dark:border-white/10 shrink-0">
+      <div className="px-5 pt-3 pb-4 lg:p-5 border-b border-ios-divider dark:border-iosDark-divider shrink-0">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h2 className="font-black text-lg text-gray-900 dark:text-white leading-tight">{barbershop.name}</h2>
@@ -63,7 +63,7 @@ const BarbershopCard: React.FC<BarbershopCardProps> = ({
               </div>
             )}
           </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400 ml-2 shrink-0">
+          <button onClick={onClose} className="p-1.5 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-full text-gray-400 ml-2 shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -102,7 +102,7 @@ const BarbershopCard: React.FC<BarbershopCardProps> = ({
           ) : (
             <div className="space-y-2">
               {barberCutsToday.map(({ barber, cuts, revenue }) => (
-                <div key={barber.id} className="flex items-center justify-between bg-gray-50 dark:bg-slate-800 rounded-xl px-3 py-2.5">
+                <div key={barber.id} className="flex items-center justify-between bg-ios-grouped dark:bg-iosDark-grouped rounded-xl px-3 py-2.5">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-slate-300">
                       {barber.name.charAt(0).toUpperCase()}
@@ -121,7 +121,7 @@ const BarbershopCard: React.FC<BarbershopCardProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t dark:border-white/10 shrink-0">
+      <div className="p-4 border-t border-ios-divider dark:border-iosDark-divider shrink-0">
         <button
           onClick={onViewBarbers}
           className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-all"

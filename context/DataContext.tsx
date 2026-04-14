@@ -7,11 +7,19 @@ import {
     HaircutSession,
     ShiftClosing,
     AppNotification,
+    LigaEntry,
+    LigaConfig,
+    LigaClient,
+    LigaMonthlyClosing,
 } from '../types';
 import {
     DbHaircutSessionRow,
     DbShiftClosingRow,
     DbNotificationRow,
+    DbLigaEntryRow,
+    DbLigaConfigRow,
+    DbLigaClientRow,
+    DbLigaMonthlyClosingRow,
 } from '../types/dbRows';
 import { supabase } from '../services/supabaseClient';
 import {
@@ -22,6 +30,10 @@ import {
     dbToHaircutSession,
     dbToShiftClosing,
     dbToNotification,
+    dbToLigaEntry,
+    dbToLigaConfig,
+    dbToLigaClient,
+    dbToLigaMonthlyClosing,
 } from '../utils/mappers';
 import { handleError } from '../utils/errorHandler';
 import { SESSIONS_LOAD_DAYS } from '../constants';
@@ -41,6 +53,14 @@ interface DataContextType {
     setSessions: React.Dispatch<React.SetStateAction<HaircutSession[]>>;
     shiftClosings: ShiftClosing[];
     setShiftClosings: React.Dispatch<React.SetStateAction<ShiftClosing[]>>;
+    ligaEntries: LigaEntry[];
+    setLigaEntries: React.Dispatch<React.SetStateAction<LigaEntry[]>>;
+    ligaConfigs: LigaConfig[];
+    setLigaConfigs: React.Dispatch<React.SetStateAction<LigaConfig[]>>;
+    ligaMonthlyClosings: LigaMonthlyClosing[];
+    setLigaMonthlyClosings: React.Dispatch<React.SetStateAction<LigaMonthlyClosing[]>>;
+    ligaClients: LigaClient[];
+    setLigaClients: React.Dispatch<React.SetStateAction<LigaClient[]>>;
     notifications: AppNotification[];
     unreadCount: number;
     markNotificationRead: (id: string) => Promise<void>;
@@ -60,6 +80,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [sessions, setSessions] = useState<HaircutSession[]>([]);
     const [shiftClosings, setShiftClosings] = useState<ShiftClosing[]>([]);
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
+    const [ligaEntries, setLigaEntries] = useState<LigaEntry[]>([]);
+    const [ligaConfigs, setLigaConfigs] = useState<LigaConfig[]>([]);
+    const [ligaMonthlyClosings, setLigaMonthlyClosings] = useState<LigaMonthlyClosing[]>([]);
+    const [ligaClients, setLigaClients] = useState<LigaClient[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     // Filtro de barbería: cuando está seteado, las queries y eventos realtime
@@ -98,9 +122,26 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 .gte('shift_date', dateCutoff.slice(0, 10))
                 .order('shift_date', { ascending: false });
 
+            // Liga: cargar entries de los últimos 90 días + config + cierres mensuales
+            let ligaEntriesQuery = supabase
+                .from('liga_entries').select('*')
+                .gte('created_at', dateCutoff)
+                .order('created_at', { ascending: false });
+            let ligaConfigsQuery = supabase.from('liga_config').select('*');
+            let ligaClosingsQuery = supabase
+                .from('liga_monthly_closings').select('*')
+                .order('month', { ascending: false }).limit(24);
+            let ligaClientsQuery = supabase
+                .from('liga_clients').select('*')
+                .order('code', { ascending: true });
+
             if (barbershopId) {
                 sessionsQuery = sessionsQuery.eq('barbershop_id', barbershopId);
                 closingsQuery = closingsQuery.eq('barbershop_id', barbershopId);
+                ligaEntriesQuery = ligaEntriesQuery.eq('barbershop_id', barbershopId);
+                ligaConfigsQuery = ligaConfigsQuery.eq('barbershop_id', barbershopId);
+                ligaClosingsQuery = ligaClosingsQuery.eq('barbershop_id', barbershopId);
+                ligaClientsQuery = ligaClientsQuery.eq('barbershop_id', barbershopId);
             }
 
             const [
@@ -130,6 +171,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (shiftClosingsResult.data) setShiftClosings(shiftClosingsResult.data.map(dbToShiftClosing));
             if (notificationsResult.data) setNotifications(notificationsResult.data.map(dbToNotification));
 
+            // Liga: best-effort, no bloquea la app si las tablas no existen aún (migración pendiente)
+            try {
+                const [ligaEntriesResult, ligaConfigsResult, ligaClosingsResult, ligaClientsResult] = await Promise.all([
+                    ligaEntriesQuery,
+                    ligaConfigsQuery,
+                    ligaClosingsQuery,
+                    ligaClientsQuery,
+                ]);
+                if (ligaEntriesResult.data) setLigaEntries(ligaEntriesResult.data.map(dbToLigaEntry));
+                if (ligaConfigsResult.data) setLigaConfigs(ligaConfigsResult.data.map(dbToLigaConfig));
+                if (ligaClosingsResult.data) setLigaMonthlyClosings(ligaClosingsResult.data.map(dbToLigaMonthlyClosing));
+                if (ligaClientsResult.data) setLigaClients(ligaClientsResult.data.map(dbToLigaClient));
+            } catch (ligaErr) {
+                console.warn('[DataContext] Tablas Liga no disponibles (¿migración aplicada?)', ligaErr);
+            }
+
             // Clientes: tabla opcional, no bloquea la app si falta
             try {
                 const clientsResult = await supabase.from('clients').select('*').order('name', { ascending: true });
@@ -155,9 +212,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'haircut_sessions' },
                 (payload) => {
-                    // En modo BARBER, ignorar eventos de otras barberías
+                    // En modo BARBER, ignorar eventos de otras barberías.
+                    // En DELETE, payload.new es vacío → usar payload.old.barbershop_id.
                     const filter = barbershopFilterRef.current;
-                    if (filter && payload.eventType !== 'DELETE' && payload.new.barbershop_id !== filter) return;
+                    if (filter) {
+                        const shopId = payload.eventType === 'DELETE'
+                            ? (payload.old as { barbershop_id?: string })?.barbershop_id
+                            : (payload.new as { barbershop_id?: string })?.barbershop_id;
+                        if (shopId && shopId !== filter) return;
+                    }
 
                     if (payload.eventType === 'INSERT') {
                         setSessions(prev => {
@@ -182,9 +245,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'shift_closings' },
                 (payload) => {
-                    // En modo BARBER, ignorar eventos de otras barberías
                     const filter = barbershopFilterRef.current;
-                    if (filter && payload.eventType !== 'DELETE' && payload.new.barbershop_id !== filter) return;
+                    if (filter) {
+                        const shopId = payload.eventType === 'DELETE'
+                            ? (payload.old as { barbershop_id?: string })?.barbershop_id
+                            : (payload.new as { barbershop_id?: string })?.barbershop_id;
+                        if (shopId && shopId !== filter) return;
+                    }
 
                     if (payload.eventType === 'INSERT') {
                         setShiftClosings(prev => {
@@ -197,6 +264,89 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         ));
                     } else if (payload.eventType === 'DELETE') {
                         setShiftClosings(prev => prev.filter(c => c.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        // Realtime: liga_entries
+        const ligaEntriesChannel = supabase
+            .channel('liga_entries_realtime')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'liga_entries' },
+                (payload) => {
+                    const filter = barbershopFilterRef.current;
+                    if (filter) {
+                        const shopId = payload.eventType === 'DELETE'
+                            ? (payload.old as { barbershop_id?: string })?.barbershop_id
+                            : (payload.new as { barbershop_id?: string })?.barbershop_id;
+                        if (shopId && shopId !== filter) return;
+                    }
+                    if (payload.eventType === 'INSERT') {
+                        setLigaEntries(prev => {
+                            if (prev.some(e => e.id === payload.new.id)) return prev;
+                            return [dbToLigaEntry(payload.new as DbLigaEntryRow), ...prev];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        setLigaEntries(prev => prev.map(e =>
+                            e.id === payload.new.id ? dbToLigaEntry(payload.new as DbLigaEntryRow) : e
+                        ));
+                    } else if (payload.eventType === 'DELETE') {
+                        setLigaEntries(prev => prev.filter(e => e.id !== payload.old.id));
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'liga_config' },
+                (payload) => {
+                    if (payload.eventType === 'DELETE') {
+                        setLigaConfigs(prev => prev.filter(c => c.barbershopId !== (payload.old as DbLigaConfigRow).barbershop_id));
+                    } else {
+                        const cfg = dbToLigaConfig(payload.new as DbLigaConfigRow);
+                        setLigaConfigs(prev => {
+                            const exists = prev.some(c => c.barbershopId === cfg.barbershopId);
+                            return exists
+                                ? prev.map(c => c.barbershopId === cfg.barbershopId ? cfg : c)
+                                : [...prev, cfg];
+                        });
+                    }
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'liga_monthly_closings' },
+                (payload) => {
+                    const closing = dbToLigaMonthlyClosing(payload.new as DbLigaMonthlyClosingRow);
+                    setLigaMonthlyClosings(prev => {
+                        if (prev.some(c => c.id === closing.id)) return prev;
+                        return [closing, ...prev];
+                    });
+                }
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'liga_clients' },
+                (payload) => {
+                    const filter = barbershopFilterRef.current;
+                    if (filter) {
+                        const shopId = payload.eventType === 'DELETE'
+                            ? (payload.old as { barbershop_id?: string })?.barbershop_id
+                            : (payload.new as { barbershop_id?: string })?.barbershop_id;
+                        if (shopId && shopId !== filter) return;
+                    }
+                    if (payload.eventType === 'INSERT') {
+                        setLigaClients(prev => {
+                            if (prev.some(c => c.id === payload.new.id)) return prev;
+                            return [...prev, dbToLigaClient(payload.new as DbLigaClientRow)];
+                        });
+                    } else if (payload.eventType === 'UPDATE') {
+                        setLigaClients(prev => prev.map(c =>
+                            c.id === payload.new.id ? dbToLigaClient(payload.new as DbLigaClientRow) : c
+                        ));
+                    } else if (payload.eventType === 'DELETE') {
+                        setLigaClients(prev => prev.filter(c => c.id !== payload.old.id));
                     }
                 }
             )
@@ -244,6 +394,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             supabase.removeChannel(sessionsChannel);
             supabase.removeChannel(shiftClosingsChannel);
             supabase.removeChannel(notificationsChannel);
+            supabase.removeChannel(ligaEntriesChannel);
         };
     }, []);
 
@@ -260,6 +411,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             clients, setClients,
             sessions, setSessions,
             shiftClosings, setShiftClosings,
+            ligaEntries, setLigaEntries,
+            ligaConfigs, setLigaConfigs,
+            ligaMonthlyClosings, setLigaMonthlyClosings,
+            ligaClients, setLigaClients,
             notifications,
             unreadCount,
             markNotificationRead,

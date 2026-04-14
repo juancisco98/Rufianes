@@ -7,11 +7,24 @@ import { haircutSessionToDb } from '../utils/mappers';
 export const useSessions = () => {
     const { sessions, setSessions } = useDataContext();
 
+    /**
+     * Register session — optimistic update.
+     * Insertamos la sesión inmediatamente en el estado local para que la UI
+     * sienta instantánea. Si el upsert falla, hacemos rollback.
+     * El realtime channel se encarga de las actualizaciones posteriores.
+     */
     const registerSession = useCallback(async (session: HaircutSession) => {
-        const payload = haircutSessionToDb(session);
-        await supabaseUpsert('haircut_sessions', payload, 'haircut_session');
-        // El realtime channel en DataContext actualiza el estado
-    }, []);
+        // Optimistic insert (skip si ya existe por algún motivo)
+        setSessions(prev => prev.some(s => s.id === session.id) ? prev : [session, ...prev]);
+        try {
+            const payload = haircutSessionToDb(session);
+            await supabaseUpsert('haircut_sessions', payload, 'haircut_session');
+        } catch (err) {
+            // Rollback
+            setSessions(prev => prev.filter(s => s.id !== session.id));
+            throw err;
+        }
+    }, [setSessions]);
 
     const updateSession = useCallback(async (session: HaircutSession) => {
         const payload = haircutSessionToDb(session);

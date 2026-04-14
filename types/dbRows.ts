@@ -16,8 +16,70 @@ export interface DbBarbershopRow {
   notes?: string | null;
   chair_count?: number | null;
   opening_hours?: Record<string, { open: string; close: string; is_open: boolean }> | null;
+  liga_enabled?: boolean | null;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface DbLigaEntryRow {
+  id: string;
+  session_id: string;
+  barbershop_id: string;
+  barber_id: string;
+  client_name: string;
+  client_phone?: string | null;
+  month: string;
+  liga_client_id?: string | null;
+  dice_1?: number | null;
+  dice_2?: number | null;
+  dice_3?: number | null;
+  dice_sum?: number | null;
+  is_service?: boolean | null;
+  service_points: number;
+  extra_dice_count: number;
+  extra_dice_points: number;
+  extra_dice_revenue: number | string;
+  extra_dice_commission: number | string;
+  total_points: number;
+  created_at: string;
+}
+
+export interface DbLigaClientRow {
+  id: string;
+  barbershop_id: string;
+  code: string;
+  name: string;
+  phone?: string | null;
+  notes?: string | null;
+  created_at?: string;
+}
+
+export interface DbLigaConfigRow {
+  barbershop_id: string;
+  service_multiplier: number;
+  extra_die_cost: number | string;
+  extra_die_commission: number | string;
+  prize_1: number | string;
+  prize_2: number | string;
+  prize_3: number | string;
+  prize_label: string;
+  is_active: boolean;
+  working_days_per_month?: number | null;
+  monthly_goal?: number | string | null;
+  updated_at?: string;
+}
+
+export interface DbLigaMonthlyClosingRow {
+  id: string;
+  barbershop_id: string;
+  month: string;
+  podium: { rank: number; clientName: string; points: number; prize: number }[];
+  total_revenue: number | string;
+  total_commission: number | string;
+  total_prizes: number | string;
+  net: number | string;
+  closed_at: string;
+  closed_by?: string | null;
 }
 
 export interface DbBarberRow {
@@ -30,6 +92,7 @@ export interface DbBarberRow {
   specialties: string[];
   commission_pct: number | string;
   is_active: boolean;
+  is_manager?: boolean | null;
   hire_date?: string | null;
   notes?: string | null;
   created_at?: string;
@@ -92,6 +155,7 @@ export interface DbShiftClosingRow {
   expenses_cash: number | string;
   expenses_detail: { description: string; amount: number }[];
   net_cash_to_hand?: number | string | null;
+  cash_audit?: Record<string, unknown> | null;
   notes?: string | null;
   status: string;
   created_at?: string;

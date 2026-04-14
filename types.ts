@@ -55,8 +55,103 @@ export interface Barbershop {
   notes?: string;
   chairCount?: number;
   openingHours?: WeekSchedule;
+  ligaEnabled?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+// ── LA LIGA DEL CORTE ──
+
+export interface LigaEntry {
+  id: string;
+  sessionId: string;
+  barbershopId: string;
+  barberId: string;
+  clientName: string;
+  clientPhone?: string;
+  month: string;                     // "YYYY-MM"
+  ligaClientId?: string;             // FK a liga_clients (opcional por compat con filas viejas)
+  dice1?: number;                    // legacy — valores individuales (filas viejas)
+  dice2?: number;
+  dice3?: number;
+  diceSum: number;                   // suma total de la tirada (3–18 para 3 dados)
+  isService: boolean;                // true = CORTE (aplica multiplicador), false = NO CORTE (1×)
+  servicePoints: number;             // diceSum * (isService ? multiplier : 1)
+  extraDiceCount: number;
+  extraDicePoints: number;           // suma plana de los valores
+  extraDiceRevenue: number;          // count * extraDieCost
+  extraDiceCommission: number;       // count * extraDieCommission
+  totalPoints: number;               // GENERATED en DB
+  createdAt: string;
+}
+
+export interface LigaConfig {
+  barbershopId: string;
+  serviceMultiplier: number;
+  extraDieCost: number;
+  extraDieCommission: number;
+  prize1: number;
+  prize2: number;
+  prize3: number;
+  prizeLabel: string;
+  isActive: boolean;
+  workingDaysPerMonth?: number;   // default 26 — usado en el simulador "Números Reales"
+  monthlyGoal?: number;            // default 1_000_000 — meta mensual de sueldo del barbero
+  updatedAt?: string;
+}
+
+export interface LigaClient {
+  id: string;
+  barbershopId: string;
+  code: string;              // 4 dígitos "0001"–"9999"
+  name: string;
+  phone?: string;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface LigaPodiumEntry {
+  rank: number;
+  clientName: string;
+  points: number;
+  prize: number;
+}
+
+export interface LigaMonthlyClosing {
+  id: string;
+  barbershopId: string;
+  month: string;
+  podium: LigaPodiumEntry[];
+  totalRevenue: number;
+  totalCommission: number;
+  totalPrizes: number;
+  net: number;
+  closedAt: string;
+  closedBy?: string;
+}
+
+export interface LigaLeaderboardRow {
+  rank: number;
+  ligaClientId?: string;             // undefined para filas viejas sin ficha
+  clientCode?: string;                // 4 dígitos si hay ficha asociada
+  clientName: string;
+  clientPhone?: string;
+  totalPoints: number;
+  visits: number;
+  extraDiceBought: number;
+  lastVisit: string;
+  reachedTopAt: string;              // para desempate (primero en alcanzar puntaje)
+}
+
+export interface LigaSummary {
+  barbershopId: string;
+  month: string;
+  totalEntries: number;
+  totalPoints: number;
+  totalExtraDiceSold: number;
+  totalRevenue: number;
+  totalCommission: number;
+  uniqueClients: number;
 }
 
 // ── BARBEROS ──
@@ -71,6 +166,7 @@ export interface Barber {
   specialties: string[];
   commissionPct: number;   // 0–100
   isActive: boolean;
+  isManager?: boolean;     // encargado de sucursal — hace auditoría de caja al cerrar turno
   hireDate?: string;
   notes?: string;
   createdAt?: string;
@@ -131,6 +227,24 @@ export interface ShiftExpense {
   amount: number;
 }
 
+/**
+ * Auditoría de caja — solo la completa el encargado al cerrar turno.
+ * Conteo manual de billetes/monedas vs. lo que el sistema esperaba.
+ */
+export interface CashAudit {
+  /** Cuenta de cada denominación: { "10000": 5, "1000": 12, ... } */
+  denominations: Record<string, number>;
+  /** Total contado físicamente */
+  countedTotal: number;
+  /** Total que el sistema esperaba en caja */
+  expectedTotal: number;
+  /** countedTotal - expectedTotal (puede ser negativo) */
+  difference: number;
+  notes?: string;
+  auditedAt: string;
+  auditedBy: string;  // barberId
+}
+
 export interface ShiftClosing {
   id: string;
   barbershopId: string;
@@ -147,6 +261,7 @@ export interface ShiftClosing {
   expensesCash: number;
   expensesDetail: ShiftExpense[];
   netCashToHand?: number;     // totalCash - expensesCash
+  cashAudit?: CashAudit;      // solo presente si el encargado hizo auditoría
   notes?: string;
   status: 'OPEN' | 'CLOSED';
   createdAt?: string;
@@ -166,6 +281,8 @@ export interface ShiftClosingMetadata {
   barberId: string;
   barberName: string;
   shiftDate: string;
+  startedAt?: string;       // hora de apertura del turno
+  closedAt?: string;        // hora de cierre del turno
   totalCuts: number;
   totalRevenue: number;
   totalCash: number;
@@ -175,6 +292,8 @@ export interface ShiftClosingMetadata {
   expensesCash: number;
   netCashToHand: number;
   expensesDetail: { description: string; amount: number }[];
+  cashAudit?: CashAudit;    // si el barbero es encargado
+  isManager?: boolean;
 }
 
 export interface AppNotification {

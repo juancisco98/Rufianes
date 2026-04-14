@@ -1,15 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Pencil, Scissors, TrendingUp, DollarSign, Search, UserX } from 'lucide-react';
+import { Plus, Pencil, Search, UserX, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Barbershop, Barber, HaircutSession, Service } from '../types';
-import RegisterSessionModal from './RegisterSessionModal';
 import { DEFAULT_COMMISSION_PCT } from '../constants';
-
-const generateUUID = (): string =>
-    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
+import { generateUUID } from '../utils/uuid';
+import { IOSSwitch } from './ui';
 
 interface BarbersViewProps {
   barbershops: Barbershop[];
@@ -18,8 +13,8 @@ interface BarbersViewProps {
   services: Service[];
   onSaveBarber: (barber: Barber) => Promise<void>;
   onDeactivateBarber: (id: string) => Promise<void>;
-  onRegisterSession: (session: HaircutSession) => Promise<void>;
-  getServicesForShop: (barbershopId: string) => Service[];
+  // onRegisterSession y getServicesForShop ya no se usan en admin —
+  // los cortes los registra el barbero desde su portal
 }
 
 interface AddBarberFormData {
@@ -29,21 +24,21 @@ interface AddBarberFormData {
   barbershopId: string;
   commissionPct: number;
   specialties: string[];
+  isManager: boolean;
 }
 
 const BarbersView: React.FC<BarbersViewProps> = ({
-  barbershops, barbers, sessions, services,
-  onSaveBarber, onDeactivateBarber, onRegisterSession, getServicesForShop,
+  barbershops, barbers, sessions,
+  onSaveBarber, onDeactivateBarber,
 }) => {
   const [selectedShopId, setSelectedShopId] = useState(barbershops[0]?.id ?? '');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [registeringBarber, setRegisteringBarber] = useState<Barber | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
   const [formData, setFormData] = useState<AddBarberFormData>({
     name: '', email: '', phone: '', barbershopId: selectedShopId,
-    commissionPct: DEFAULT_COMMISSION_PCT, specialties: [],
+    commissionPct: DEFAULT_COMMISSION_PCT, specialties: [], isManager: false,
   });
 
   const today = new Date().toISOString().slice(0, 10);
@@ -66,7 +61,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
   const resetForm = () => {
     setShowAddForm(false);
     setEditingBarber(null);
-    setFormData({ name: '', email: '', phone: '', barbershopId: selectedShopId, commissionPct: DEFAULT_COMMISSION_PCT, specialties: [] });
+    setFormData({ name: '', email: '', phone: '', barbershopId: selectedShopId, commissionPct: DEFAULT_COMMISSION_PCT, specialties: [], isManager: false });
   };
 
   const openEditForm = (barber: Barber) => {
@@ -78,6 +73,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
       barbershopId: barber.barbershopId,
       commissionPct: barber.commissionPct,
       specialties: barber.specialties,
+      isManager: barber.isManager === true,
     });
     setShowAddForm(true);
   };
@@ -95,6 +91,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
           barbershopId: formData.barbershopId,
           commissionPct: formData.commissionPct,
           specialties: formData.specialties,
+          isManager: formData.isManager,
         }
       : {
           id: generateUUID(),
@@ -105,6 +102,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
           commissionPct: formData.commissionPct,
           specialties: formData.specialties,
           isActive: true,
+          isManager: formData.isManager,
         };
 
     setIsSaving(true);
@@ -130,9 +128,9 @@ const BarbersView: React.FC<BarbersViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
+      <div className="p-6 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-black text-gray-900 dark:text-white">Barberos</h1>
           <button
@@ -153,13 +151,13 @@ const BarbersView: React.FC<BarbersViewProps> = ({
               placeholder="Buscar barbero..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
           </div>
           <select
             value={selectedShopId}
             onChange={e => setSelectedShopId(e.target.value)}
-            className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="px-4 py-2.5 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
           >
             <option value="">Todas</option>
             {barbershops.map(shop => (
@@ -183,7 +181,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
               const stats = getBarberStatsToday(barber.id);
               const shop = barbershops.find(s => s.id === barber.barbershopId);
               return (
-                <div key={barber.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+                <div key={barber.id} className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
                   <div className="p-5">
                     {/* Avatar + nombre */}
                     <div className="flex items-center gap-3 mb-4">
@@ -198,7 +196,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
 
                     {/* Estadísticas del día */}
                     <div className="grid grid-cols-3 gap-2 mb-4">
-                      <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-2.5 text-center">
+                      <div className="bg-ios-grouped dark:bg-iosDark-grouped rounded-xl p-2.5 text-center">
                         <p className="text-base font-black text-gray-900 dark:text-white">{stats.cuts}</p>
                         <p className="text-[10px] text-gray-400 font-medium">cortes</p>
                       </div>
@@ -228,25 +226,18 @@ const BarbersView: React.FC<BarbersViewProps> = ({
                     )}
                   </div>
 
-                  {/* Acciones */}
-                  <div className="grid grid-cols-3 border-t border-gray-100 dark:border-white/10">
-                    <button
-                      onClick={() => setRegisteringBarber(barber)}
-                      className="py-3 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Scissors className="w-3.5 h-3.5" />
-                      Registrar
-                    </button>
+                  {/* Acciones (admin solo edita / desactiva — no registra cortes) */}
+                  <div className="grid grid-cols-2 border-t border-ios-border dark:border-iosDark-border">
                     <button
                       onClick={() => openEditForm(barber)}
-                      className="py-3 text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors border-l border-gray-100 dark:border-white/10 flex items-center justify-center gap-1.5"
+                      className="py-3 text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                       Editar
                     </button>
                     <button
                       onClick={() => handleDeactivate(barber)}
-                      className="py-3 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border-l border-gray-100 dark:border-white/10 flex items-center justify-center gap-1.5"
+                      className="py-3 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors border-l border-ios-border dark:border-iosDark-border flex items-center justify-center gap-1.5"
                     >
                       <UserX className="w-3.5 h-3.5" />
                       Desactivar
@@ -262,7 +253,7 @@ const BarbersView: React.FC<BarbersViewProps> = ({
       {/* Formulario agregar barbero */}
       {showAddForm && (
         <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-6 space-y-4">
+          <div className="w-full max-w-md bg-white dark:bg-iosDark-bg2 rounded-3xl shadow-2xl p-6 space-y-4">
             <h2 className="font-black text-lg text-gray-900 dark:text-white">
               {editingBarber ? 'Editar Barbero' : 'Nuevo Barbero'}
             </h2>
@@ -272,26 +263,26 @@ const BarbersView: React.FC<BarbersViewProps> = ({
               placeholder="Nombre *"
               value={formData.name}
               onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
             <input
               type="email"
               placeholder="Email (para login Google)"
               value={formData.email}
               onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
             <input
               type="tel"
               placeholder="Teléfono"
               value={formData.phone}
               onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
             <select
               value={formData.barbershopId}
               onChange={e => setFormData(prev => ({ ...prev, barbershopId: e.target.value }))}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
             >
               <option value="">Seleccionar barbería *</option>
               {barbershops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -311,10 +302,29 @@ const BarbersView: React.FC<BarbersViewProps> = ({
               />
             </div>
 
+            {/* Encargado de sucursal */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-ios-grouped dark:bg-iosDark-grouped">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/15 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">Encargado de sucursal</div>
+                  <div className="text-[11px] text-gray-500 dark:text-slate-400">
+                    Hace auditoría de caja al cerrar turno
+                  </div>
+                </div>
+              </div>
+              <IOSSwitch
+                checked={formData.isManager}
+                onChange={(v) => setFormData(prev => ({ ...prev, isManager: v }))}
+              />
+            </div>
+
             <div className="flex gap-3 pt-2">
               <button
                 onClick={resetForm}
-                className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-700 dark:text-slate-300 font-semibold hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex-1 py-3 rounded-xl border border-ios-border dark:border-iosDark-border text-gray-700 dark:text-slate-300 font-semibold hover:bg-ios-grouped dark:hover:bg-iosDark-grouped transition-colors"
               >
                 Cancelar
               </button>
@@ -330,15 +340,6 @@ const BarbersView: React.FC<BarbersViewProps> = ({
         </div>
       )}
 
-      {/* Modal registrar sesión desde admin */}
-      {registeringBarber && (
-        <RegisterSessionModal
-          barber={registeringBarber}
-          services={getServicesForShop(registeringBarber.barbershopId)}
-          onSave={onRegisterSession}
-          onClose={() => setRegisteringBarber(null)}
-        />
-      )}
     </div>
   );
 };

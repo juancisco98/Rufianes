@@ -35,6 +35,9 @@ const BarberPortal            = lazy(() => import('./components/BarberPortal'));
 const LiveDashboardView       = lazy(() => import('./components/LiveDashboardView'));
 const ShiftClosingDetailModal = lazy(() => import('./components/ShiftClosingDetailModal'));
 const FinancesView            = lazy(() => import('./components/FinancesView'));
+const LigaView                = lazy(() => import('./components/LigaView'));
+const ShiftsView              = lazy(() => import('./components/ShiftsView'));
+const LigaPublicDashboard     = lazy(() => import('./components/liga/LigaPublicDashboard'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-full">
@@ -80,7 +83,7 @@ const Dashboard: React.FC = () => {
     if (!isLoading && !isHydrated.current) {
       const params = new URLSearchParams(window.location.search);
       const viewParam = params.get('view') as ViewState;
-      if (viewParam && (['LIVE', 'MAP', 'BARBERSHOPS', 'BARBERS', 'SESSIONS', 'ANALYTICS', 'SETTINGS'] as string[]).includes(viewParam)) {
+      if (viewParam && (['LIVE', 'MAP', 'BARBERSHOPS', 'BARBERS', 'SESSIONS', 'SHIFTS', 'ANALYTICS', 'FINANCES', 'LIGA', 'SETTINGS'] as string[]).includes(viewParam)) {
         setCurrentView(viewParam);
       }
       isHydrated.current = true;
@@ -410,8 +413,6 @@ const Dashboard: React.FC = () => {
                 services={services}
                 onSaveBarber={saveBarber}
                 onDeactivateBarber={deactivateBarber}
-                onRegisterSession={registerSession}
-                getServicesForShop={getServicesForShop}
               />
             </Suspense>
           )}
@@ -450,6 +451,20 @@ const Dashboard: React.FC = () => {
                 getFinancialsByBarbershop={getFinancialsByBarbershop}
                 getNetworkFinancials={getNetworkFinancials}
               />
+            </Suspense>
+          )}
+
+          {/* SHIFTS */}
+          {currentView === 'SHIFTS' && (
+            <Suspense fallback={<LoadingFallback />}>
+              <ShiftsView />
+            </Suspense>
+          )}
+
+          {/* LIGA */}
+          {currentView === 'LIGA' && (
+            <Suspense fallback={<LoadingFallback />}>
+              <LigaView />
             </Suspense>
           )}
 
@@ -496,10 +511,27 @@ const Dashboard: React.FC = () => {
 // ROOT
 // ─────────────────────────────────────────────────────────────────────────────
 
-const App: React.FC = () => (
-  <DataProvider>
-    <Dashboard />
-  </DataProvider>
-);
+const App: React.FC = () => {
+  // Ruta pública: ?liga=<barbershopId> — dashboard de la Liga sin login
+  // Se evalúa ANTES de montar el DataProvider/Dashboard para evitar el flujo de auth
+  const ligaShopId = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('liga')
+    : null;
+
+  if (ligaShopId) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <LigaPublicDashboard barbershopId={ligaShopId} />
+        <Toaster position="top-right" theme="dark" />
+      </Suspense>
+    );
+  }
+
+  return (
+    <DataProvider>
+      <Dashboard />
+    </DataProvider>
+  );
+};
 
 export default App;

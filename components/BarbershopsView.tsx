@@ -51,9 +51,9 @@ const BarbershopsView: React.FC<BarbershopsViewProps> = ({
   const inactiveShops = barbershops.filter(b => !b.isActive);
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 overflow-y-auto">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg overflow-y-auto">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
+      <div className="px-6 py-5 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-black text-gray-900 dark:text-white">Barberías</h1>
@@ -84,7 +84,7 @@ const BarbershopsView: React.FC<BarbershopsViewProps> = ({
           const todayStatus = getTodayStatus(shop);
 
           return (
-            <div key={shop.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+            <div key={shop.id} className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
               <div className="p-4 flex items-start gap-4">
                 {/* Ícono */}
                 <div className="w-12 h-12 bg-amber-100 dark:bg-amber-500/20 rounded-2xl flex items-center justify-center shrink-0">
@@ -104,7 +104,7 @@ const BarbershopsView: React.FC<BarbershopsViewProps> = ({
                     <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
                       todayStatus.open
                         ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-                        : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400'
+                        : 'bg-ios-grouped dark:bg-iosDark-grouped text-gray-500 dark:text-slate-400'
                     }`}>
                       {todayStatus.open ? '● Abierta' : '● Cerrada'}
                     </div>
@@ -152,7 +152,7 @@ const BarbershopsView: React.FC<BarbershopsViewProps> = ({
               <div className="px-4 py-3 border-t border-gray-50 dark:border-white/5 flex items-center gap-2">
                 <button
                   onClick={() => onViewOnMap(shop)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 dark:text-slate-400 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped transition-colors"
                 >
                   Ver en mapa
                 </button>
@@ -172,7 +172,7 @@ const BarbershopsView: React.FC<BarbershopsViewProps> = ({
           <div className="pt-2">
             <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-2">Inactivas ({inactiveShops.length})</p>
             {inactiveShops.map(shop => (
-              <div key={shop.id} className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-white/10 px-4 py-3 flex items-center justify-between mb-2 opacity-60">
+              <div key={shop.id} className="bg-white dark:bg-iosDark-bg2 rounded-xl border border-ios-border dark:border-iosDark-border px-4 py-3 flex items-center justify-between mb-2 opacity-60">
                 <div>
                   <p className="text-sm font-semibold text-gray-500 dark:text-slate-400">{shop.name}</p>
                   <p className="text-xs text-gray-400">{shop.neighborhood ?? shop.address}</p>

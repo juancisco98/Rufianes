@@ -1,7 +1,7 @@
 import React from 'react';
-import { BarChart3, Scissors, History, Map as MapIcon, LogOut, X, Settings, Store, Activity, Wallet } from 'lucide-react';
+import { BarChart3, Scissors, History, Map as MapIcon, LogOut, X, Settings, Store, Activity, Wallet, Trophy, Clock } from 'lucide-react';
 
-export type ViewState = 'LIVE' | 'MAP' | 'BARBERSHOPS' | 'BARBERS' | 'SESSIONS' | 'ANALYTICS' | 'FINANCES' | 'SETTINGS';
+export type ViewState = 'LIVE' | 'MAP' | 'BARBERSHOPS' | 'BARBERS' | 'SESSIONS' | 'SHIFTS' | 'ANALYTICS' | 'FINANCES' | 'LIGA' | 'SETTINGS';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,15 +19,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onViewC
     { id: 'BARBERSHOPS' as ViewState, label: 'Barberías',   icon: Store },
     { id: 'BARBERS' as ViewState,     label: 'Barberos',    icon: Scissors },
     { id: 'SESSIONS' as ViewState,    label: 'Sesiones',    icon: History },
+    { id: 'SHIFTS' as ViewState,      label: 'Turnos',      icon: Clock },
     { id: 'ANALYTICS' as ViewState,   label: 'Analytics',   icon: BarChart3 },
     { id: 'FINANCES' as ViewState,    label: 'Finanzas',    icon: Wallet },
+    { id: 'LIGA' as ViewState,        label: 'Liga',        icon: Trophy },
     { id: 'SETTINGS' as ViewState,    label: 'Ajustes',     icon: Settings },
   ];
 
   const SidebarContent = () => (
-    <div className={`flex flex-col h-full w-64 bg-white dark:bg-slate-950 border-r border-gray-100 dark:border-white/10 ${!permanent ? 'shadow-2xl' : ''}`}>
+    <div className={`flex flex-col h-full w-64 bg-white dark:bg-iosDark-bg border-r border-ios-border dark:border-iosDark-border ${!permanent ? 'shadow-2xl' : ''}`}>
       {/* Header */}
-      <div className="px-5 py-5 flex justify-between items-center border-b border-gray-100 dark:border-white/5 shrink-0">
+      <div className="px-5 py-5 flex justify-between items-center border-b border-ios-divider dark:border-iosDark-divider shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-slate-900 dark:bg-slate-800 rounded-xl flex items-center justify-center">
             <Scissors className="w-5 h-5 text-amber-400" />
@@ -40,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onViewC
         {!permanent && (
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-500 dark:text-gray-400"
+            className="p-2 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-full text-gray-500 dark:text-gray-400"
             aria-label="Cerrar menú"
           >
             <X className="w-5 h-5" />
@@ -59,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onViewC
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-150 group ${
                 isActive
                   ? 'bg-amber-500 text-white shadow-md shadow-amber-200/50 dark:shadow-none font-bold'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white font-medium'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped hover:text-gray-900 dark:hover:text-white font-medium'
               }`}
             >
               <div className={`p-1.5 rounded-xl transition-colors ${
@@ -76,7 +78,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, currentView, onViewC
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-100 dark:border-white/5 shrink-0">
+      <div className="p-4 border-t border-ios-divider dark:border-iosDark-divider shrink-0">
         {onLogout && (
           <button
             onClick={onLogout}

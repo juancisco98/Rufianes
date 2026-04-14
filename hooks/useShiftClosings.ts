@@ -86,6 +86,8 @@ export const useShiftClosings = () => {
                 barberId: closing.barberId,
                 barberName: barber?.name ?? '',
                 shiftDate: closing.shiftDate,
+                startedAt: closing.startedAt,
+                closedAt: closedClosing.closedAt ?? undefined,
                 totalCuts: closing.totalCuts,
                 totalRevenue: closing.totalRevenue,
                 totalCash: closing.totalCash,
@@ -95,6 +97,8 @@ export const useShiftClosings = () => {
                 expensesCash: closing.expensesCash,
                 netCashToHand: closing.netCashToHand ?? (closing.totalCash - closing.expensesCash),
                 expensesDetail: closing.expensesDetail,
+                cashAudit: closing.cashAudit,
+                isManager: barber?.isManager === true,
             },
         };
 

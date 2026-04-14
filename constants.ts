@@ -50,6 +50,24 @@ export const SESSIONS_LOAD_DAYS = 90;
 // Horario de recordatorio para cierre de turno (hora del día, formato 24h)
 export const SHIFT_CLOSE_REMINDER_HOUR = 20;
 
+// ── LA LIGA DEL CORTE ─────────────────────────────────────────────────────────
+// Defaults usados al crear liga_config para una barbería nueva.
+// Pueden editarse desde el panel admin sin tocar código.
+export const LIGA_DEFAULT_CONFIG = {
+  serviceMultiplier: 2,         // ×2 puntos para corte/barba/corte+barba
+  extraDieCost: 2000,           // $ por dado extra que compra el cliente
+  extraDieCommission: 1000,     // $ comisión al barbero por cada dado vendido
+  prize1: 30000,
+  prize2: 20000,
+  prize3: 10000,
+  prizeLabel: 'Tarjeta Nike',
+  workingDaysPerMonth: 26,      // días trabajados por mes (para simulador Números Reales)
+  monthlyGoal: 1_000_000,        // meta mensual de sueldo del barbero
+} as const;
+
+export const LIGA_DICE_FACES = [1, 2, 3, 4, 5, 6] as const;
+export const LIGA_DICE_PER_ROLL = 3;
+
 // Especialidades disponibles para barberos
 export const BARBER_SPECIALTIES = [
   'Fade',

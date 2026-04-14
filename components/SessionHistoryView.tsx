@@ -64,9 +64,9 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0 space-y-4">
+      <div className="p-6 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-black text-gray-900 dark:text-white">Historial de Sesiones</h1>
           <div className="flex items-center gap-3">
@@ -97,7 +97,7 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
             placeholder="Buscar por cliente, servicio o barbero..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
         </div>
 
@@ -106,7 +106,7 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
           <select
             value={filterShopId}
             onChange={e => setFilterShopId(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
+            className="px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
           >
             <option value="">Todas las barberías</option>
             {barbershops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -114,7 +114,7 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
           <select
             value={filterBarberId}
             onChange={e => setFilterBarberId(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
+            className="px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
           >
             <option value="">Todos los barberos</option>
             {barbers.filter(b => b.isActive).map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -122,7 +122,7 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
           <select
             value={filterPayment}
             onChange={e => setFilterPayment(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
+            className="px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
           >
             <option value="">Todos los métodos</option>
             <option value="CASH">Efectivo</option>
@@ -133,12 +133,12 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
             type="date"
             value={filterDate}
             onChange={e => setFilterDate(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
+            className="px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-xs text-gray-900 dark:text-white focus:outline-none shrink-0"
           />
           {(filterShopId || filterBarberId || filterPayment || filterDate || searchQuery) && (
             <button
               onClick={() => { setFilterShopId(''); setFilterBarberId(''); setFilterPayment(''); setFilterDate(''); setSearchQuery(''); }}
-              className="px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0"
+              className="px-3 py-2 rounded-xl border border-ios-border dark:border-iosDark-border text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 shrink-0"
             >
               Limpiar filtros
             </button>
@@ -164,7 +164,7 @@ const SessionHistoryView: React.FC<SessionHistoryViewProps> = ({
               const timeStr = dateObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
               return (
-                <div key={session.id} className="flex items-center gap-4 bg-white dark:bg-slate-900 rounded-2xl px-5 py-4 border border-gray-100 dark:border-white/10">
+                <div key={session.id} className="flex items-center gap-4 bg-white dark:bg-iosDark-bg2 rounded-2xl px-5 py-4 border border-ios-border dark:border-iosDark-border">
                   {/* Fecha */}
                   <div className="text-center shrink-0 w-14">
                     <p className="text-xs font-bold text-gray-900 dark:text-white">{dateStr}</p>

@@ -51,10 +51,10 @@ const LiveDashboardView: React.FC<LiveDashboardViewProps> = ({
   const activeShops = barbershops.filter(b => b.isActive);
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-950 overflow-y-auto">
+    <div className="flex flex-col h-full bg-ios-bg dark:bg-iosDark-bg overflow-y-auto">
 
       {/* Header */}
-      <div className="p-5 border-b border-gray-100 dark:border-white/10 bg-white dark:bg-slate-900 shrink-0">
+      <div className="p-5 border-b border-ios-border dark:border-iosDark-border bg-white dark:bg-iosDark-bg2 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
             <Activity className="w-5 h-5 text-amber-500" />
@@ -108,7 +108,7 @@ const LiveDashboardView: React.FC<LiveDashboardViewProps> = ({
 
         {/* Desglose por método de pago */}
         {globalStats.cuts > 0 && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-100 dark:border-white/10">
+          <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-4 border border-ios-border dark:border-iosDark-border">
             <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">Método de pago</p>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
@@ -141,12 +141,12 @@ const LiveDashboardView: React.FC<LiveDashboardViewProps> = ({
                 ? { label: 'Turno abierto', cls: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400' }
                 : closedShifts.length > 0
                   ? { label: `${closedShifts.length} turno${closedShifts.length > 1 ? 's' : ''} cerrado${closedShifts.length > 1 ? 's' : ''}`, cls: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' }
-                  : { label: 'Sin turno hoy', cls: 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-slate-400' };
+                  : { label: 'Sin turno hoy', cls: 'bg-ios-grouped dark:bg-iosDark-grouped text-gray-500 dark:text-slate-400' };
 
               return (
                 <div
                   key={shop.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-gray-100 dark:border-white/10 hover:border-amber-200 dark:hover:border-amber-500/30 transition-all"
+                  className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-4 border border-ios-border dark:border-iosDark-border hover:border-amber-200 dark:hover:border-amber-500/30 transition-all"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
@@ -255,13 +255,13 @@ const LiveDashboardView: React.FC<LiveDashboardViewProps> = ({
             Últimas sesiones{todaySessions.length > 0 && ` (${todaySessions.length} hoy)`}
           </p>
           {todaySessions.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center border border-gray-100 dark:border-white/10">
+            <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl p-8 text-center border border-ios-border dark:border-iosDark-border">
               <Scissors className="w-8 h-8 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
               <p className="text-sm text-gray-400 dark:text-slate-500 font-medium">Sin actividad por ahora</p>
               <p className="text-xs text-gray-300 dark:text-slate-600 mt-1">Los cortes aparecerán aquí en tiempo real</p>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/10 overflow-hidden">
+            <div className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-border dark:border-iosDark-border overflow-hidden">
               {todaySessions.slice(0, 20).map((session, idx) => {
                 const barber = barbers.find(b => b.id === session.barberId);
                 const shop = barbershops.find(s => s.id === session.barbershopId);

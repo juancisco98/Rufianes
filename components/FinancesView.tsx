@@ -71,7 +71,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
   const netPositive  = summary.netOwnerRevenue >= 0;
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-50 dark:bg-slate-950">
+    <div className="h-full overflow-y-auto bg-ios-bg dark:bg-iosDark-bg">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
         {/* ── HEADER ────────────────────────────────────────────────── */}
@@ -87,10 +87,10 @@ const FinancesView: React.FC<FinancesViewProps> = ({
           </div>
 
           {/* Navegador de mes */}
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/10 rounded-2xl px-2 py-1.5 shadow-sm">
+          <div className="flex items-center gap-1 bg-white dark:bg-iosDark-bg2 border border-ios-border dark:border-iosDark-border rounded-2xl px-2 py-1.5 shadow-sm">
             <button
               onClick={() => shiftMonth(-1)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-slate-500 transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-ios-grouped dark:hover:bg-iosDark-grouped text-gray-400 dark:text-slate-500 transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -100,7 +100,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
             <button
               onClick={() => shiftMonth(1)}
               disabled={selectedMonth >= currentMonth}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-400 dark:text-slate-500 transition-colors disabled:opacity-30"
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-ios-grouped dark:hover:bg-iosDark-grouped text-gray-400 dark:text-slate-500 transition-colors disabled:opacity-30"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -108,9 +108,9 @@ const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* ── RESUMEN GLOBAL ────────────────────────────────────────── */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-iosDark-bg2 rounded-3xl border border-ios-divider dark:border-iosDark-divider shadow-sm overflow-hidden">
           {/* Ingresó */}
-          <div className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-white/5">
+          <div className="px-5 pt-5 pb-4 border-b border-ios-divider dark:border-iosDark-divider">
             <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">
               Ingresó este mes
             </p>
@@ -137,7 +137,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
           </div>
 
           {/* Salió */}
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-white/5 space-y-2.5">
+          <div className="px-5 py-4 border-b border-ios-divider dark:border-iosDark-divider space-y-2.5">
             <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">
               Salió este mes
             </p>
@@ -161,7 +161,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
                 −{fmt(summary.totalExpenses)}
               </span>
             </div>
-            <div className="flex justify-between items-center pt-1 border-t border-gray-100 dark:border-white/5">
+            <div className="flex justify-between items-center pt-1 border-t border-ios-divider dark:border-iosDark-divider">
               <span className="text-sm font-bold text-gray-700 dark:text-slate-300">Total egresos</span>
               <span className="text-sm font-black text-red-600 dark:text-red-400">
                 −{fmt(totalEgresos)}
@@ -223,12 +223,12 @@ const FinancesView: React.FC<FinancesViewProps> = ({
             return (
               <div
                 key={shop.barbershopId}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden"
+                className="bg-white dark:bg-iosDark-bg2 rounded-2xl border border-ios-divider dark:border-iosDark-divider shadow-sm overflow-hidden"
               >
                 {/* Card header — siempre visible */}
                 <button
                   onClick={() => toggleShop(shop.barbershopId)}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-ios-grouped dark:hover:bg-iosDark-grouped/50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -258,10 +258,10 @@ const FinancesView: React.FC<FinancesViewProps> = ({
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 dark:border-white/5">
+                  <div className="border-t border-ios-divider dark:border-iosDark-divider">
 
                     {/* Flujo de dinero */}
-                    <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-gray-100 dark:border-white/5">
+                    <div className="px-5 py-4 grid grid-cols-3 gap-3 border-b border-ios-divider dark:border-iosDark-divider">
                       <div className="text-center">
                         <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider mb-1">Revenue</p>
                         <p className="text-base font-black text-emerald-600 dark:text-emerald-400">{fmtCompact(shop.totalRevenue)}</p>
@@ -278,7 +278,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
 
                     {/* Barberos */}
                     {hasActivity && shop.barberBreakdown.filter(b => b.cuts > 0 || b.shifts.length > 0).length > 0 && (
-                      <div className="px-5 py-4 border-b border-gray-100 dark:border-white/5">
+                      <div className="px-5 py-4 border-b border-ios-divider dark:border-iosDark-divider">
                         <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">
                           Barberos
                         </p>
@@ -304,7 +304,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
                                 </div>
                                 {/* Progress bar de revenue relativo */}
                                 {shop.totalRevenue > 0 && (
-                                  <div className="mt-1.5 h-1 bg-gray-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                  <div className="mt-1.5 h-1 bg-ios-grouped dark:bg-iosDark-grouped rounded-full overflow-hidden">
                                     <div
                                       className="h-full bg-amber-400 dark:bg-amber-500 rounded-full"
                                       style={{ width: `${Math.round((b.revenue / shop.totalRevenue) * 100)}%` }}
@@ -353,7 +353,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
                               <span className="text-sm font-bold text-red-500 dark:text-red-400">−{fmt(e.amount)}</span>
                             </div>
                           ))}
-                          <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-white/5 mt-2">
+                          <div className="flex justify-between items-center pt-2 border-t border-ios-divider dark:border-iosDark-divider mt-2">
                             <span className="text-xs font-bold text-gray-500 dark:text-slate-400">Total gastos</span>
                             <span className="text-sm font-black text-red-600 dark:text-red-400">−{fmt(shop.totalExpenses)}</span>
                           </div>
@@ -374,7 +374,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* ── FÓRMULA ANTI-FUGAS ────────────────────────────────────── */}
-        <div className="bg-slate-50 dark:bg-slate-900/50 border border-gray-100 dark:border-white/5 rounded-2xl px-5 py-4">
+        <div className="bg-slate-50 dark:bg-slate-900/50 border border-ios-divider dark:border-iosDark-divider rounded-2xl px-5 py-4">
           <p className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">
             Verificación de caja
           </p>
@@ -391,7 +391,7 @@ const FinancesView: React.FC<FinancesViewProps> = ({
               <span>− Gastos operativos</span>
               <span className="text-red-500 font-bold">−{fmt(summary.totalExpenses)}</span>
             </div>
-            <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-white/10 font-bold">
+            <div className="flex justify-between pt-2 border-t border-ios-border dark:border-iosDark-border font-bold">
               <span className="text-gray-900 dark:text-white">= Debería estar en tu bolsillo</span>
               <span className={netPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600'}>
                 {netPositive ? '' : '−'}{fmt(summary.netOwnerRevenue)}

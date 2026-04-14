@@ -54,9 +54,9 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
 
   return (
     <div className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-iosDark-bg2 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-white/10 shrink-0 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-ios-border dark:border-iosDark-border shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-500/20 rounded-xl flex items-center justify-center">
               <Scissors className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -65,7 +65,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
               {mode === 'add' ? 'Nuevo Servicio' : 'Editar Servicio'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400">
+          <button onClick={onClose} className="p-2 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped rounded-full text-gray-400">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -80,7 +80,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="Corte clásico"
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
           </div>
 
@@ -92,7 +92,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="Breve descripción opcional"
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
           </div>
 
@@ -106,7 +106,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
               value={basePrice}
               onChange={e => setBasePrice(e.target.value)}
               placeholder="3500"
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
           </div>
 
@@ -136,7 +136,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
             <select
               value={barbershopId}
               onChange={e => setBarbershopId(e.target.value)}
-              className="mt-1 w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              className="mt-1 w-full px-4 py-3 rounded-xl border border-ios-border dark:border-iosDark-border bg-ios-grouped dark:bg-iosDark-grouped text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
             >
               <option value="">Todas las barberías (global)</option>
               {barbershops.filter(b => b.isActive).map(b => (
@@ -147,7 +147,7 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
 
           {/* Estado activo (solo edit) */}
           {mode === 'edit' && (
-            <div className="flex items-center justify-between bg-gray-50 dark:bg-slate-800 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between bg-ios-grouped dark:bg-iosDark-grouped rounded-xl px-4 py-3">
               <span className="text-sm font-semibold text-gray-700 dark:text-white">Servicio activo</span>
               <button
                 type="button"
@@ -161,10 +161,10 @@ const ServiceFormModal: React.FC<ServiceFormModalProps> = ({ mode, initialData, 
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 dark:border-white/10 shrink-0 flex gap-3">
+        <div className="px-6 py-4 border-t border-ios-border dark:border-iosDark-border shrink-0 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+            className="flex-1 py-3 rounded-xl border border-ios-border dark:border-iosDark-border text-sm font-bold text-gray-600 dark:text-slate-300 hover:bg-ios-grouped dark:hover:bg-iosDark-grouped transition-all"
           >
             Cancelar
           </button>

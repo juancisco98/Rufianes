@@ -19,7 +19,7 @@ const tabs: { id: ViewState; label: string; icon: React.ComponentType<{ classNam
 
 const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onViewChange, className = '' }) => {
   return (
-    <div className={`${className} bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-white/10 flex items-stretch safe-area-inset-bottom`}
+    <div className={`${className} bg-white dark:bg-iosDark-bg2 border-t border-ios-border dark:border-iosDark-border flex items-stretch safe-area-inset-bottom`}
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {tabs.map(({ id, label, icon: Icon }) => {

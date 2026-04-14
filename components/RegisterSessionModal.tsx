@@ -1,122 +1,231 @@
-import React, { useState, useEffect } from 'react';
-import { X, Scissors, Clock, DollarSign, User } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Scissors, DollarSign, User, Banknote, CreditCard, ArrowLeftRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { HaircutSession, Barber, Service, PaymentMethod } from '../types';
+import {
+  HaircutSession,
+  Barber,
+  Service,
+  PaymentMethod,
+  Barbershop,
+  LigaEntry,
+} from '../types';
 import { PAYMENT_METHOD_LABELS } from '../constants';
-
-const generateUUID = (): string =>
-    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = Math.random() * 16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
+import { generateUUID } from '../utils/uuid';
+import { hapticImpact, hapticSuccess, hapticError } from '../utils/haptics';
+import {
+  BottomSheet,
+  GlassButton,
+  GlassCard,
+  IOSInput,
+  SegmentedControl,
+} from './ui';
+import { LigaSection, emptyLigaState, isLigaSectionValid, LigaSectionState } from './liga/LigaSection';
+import { useLiga } from '../hooks/useLiga';
 
 interface RegisterSessionModalProps {
   barber: Barber;
+  barbershop?: Barbershop;
   services: Service[];
+  open: boolean;
   onSave: (session: HaircutSession) => Promise<void>;
   onClose: () => void;
 }
 
-const RegisterSessionModal: React.FC<RegisterSessionModalProps> = ({ barber, services, onSave, onClose }) => {
-  const [clientName, setClientName] = useState('');
+const PAYMENT_ICONS: Record<PaymentMethod, React.ReactNode> = {
+  CASH: <Banknote className="w-3.5 h-3.5" />,
+  CARD: <CreditCard className="w-3.5 h-3.5" />,
+  TRANSFER: <ArrowLeftRight className="w-3.5 h-3.5" />,
+};
+
+const RegisterSessionModal: React.FC<RegisterSessionModalProps> = ({
+  barber,
+  barbershop,
+  services,
+  open,
+  onSave,
+  onClose,
+}) => {
+  // ── Estado del corte ────────────────────────────────────────────────────────
   const [selectedServiceId, setSelectedServiceId] = useState('');
   const [customPrice, setCustomPrice] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [startedAt] = useState(() => new Date().toISOString());
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  // Precio efectivo: usa el precio del servicio o el personalizado
-  const selectedService = services.find(s => s.id === selectedServiceId);
-  const effectivePrice = customPrice !== '' ? Number(customPrice) : (selectedService?.basePrice ?? 0);
-  const commissionAmt = Math.round(effectivePrice * barber.commissionPct / 100);
+  // ── Liga (si la barbería la tiene activa) ───────────────────────────────────
+  const ligaActive = barbershop?.ligaEnabled === true;
+  const { getConfig, buildLigaEntry, registerLigaEntry } = useLiga();
+  const ligaConfig = ligaActive && barbershop ? getConfig(barbershop.id) : null;
+  const [ligaState, setLigaState] = useState<LigaSectionState>(emptyLigaState());
 
-  // Rellenar precio cuando se selecciona un servicio
+  // ── Reset al cerrar/abrir ───────────────────────────────────────────────────
+  useEffect(() => {
+    if (open) {
+      setSelectedServiceId('');
+      setCustomPrice('');
+      setPaymentMethod('CASH');
+      setNotes('');
+      setLigaState(emptyLigaState());
+      setSubmitAttempted(false);
+    }
+  }, [open]);
+
+  // Precio efectivo
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === selectedServiceId),
+    [services, selectedServiceId]
+  );
+  const effectivePrice = customPrice !== '' ? Number(customPrice) : selectedService?.basePrice ?? 0;
+  const commissionAmt = Math.round((effectivePrice * barber.commissionPct) / 100);
+
+  // Auto-fill price desde servicio
   useEffect(() => {
     if (selectedService) setCustomPrice(String(selectedService.basePrice));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedServiceId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (effectivePrice <= 0) { toast.error('El precio debe ser mayor a 0.'); return; }
+  // ── Submit ──────────────────────────────────────────────────────────────────
+  const handleSubmit = async () => {
+    setSubmitAttempted(true);
+
+    if (effectivePrice <= 0) {
+      hapticError();
+      toast.error('El precio debe ser mayor a 0.');
+      return;
+    }
+    if (ligaActive && !isLigaSectionValid(ligaState)) {
+      hapticError();
+      toast.error('Completá los datos de la Liga (cliente y todos los dados).');
+      return;
+    }
 
     const serviceName = selectedService?.name ?? 'Servicio libre';
+    const now = new Date().toISOString();
+    const sessionId = generateUUID();
+    // durationMins: usamos la duración del servicio si existe; si no, dejamos undefined
+    // (Lección: NO usar el tiempo entre apertura del modal y submit, se infla)
+    const durationMins = selectedService?.durationMins ?? undefined;
+
     const session: HaircutSession = {
-      id: generateUUID(),
+      id: sessionId,
       barbershopId: barber.barbershopId,
       barberId: barber.id,
-      clientName: clientName.trim() || undefined,
+      clientName: ligaActive
+        ? ligaState.clientNameSnapshot.trim() || undefined
+        : undefined,
       serviceId: selectedServiceId || undefined,
       serviceName,
       price: effectivePrice,
       commissionPct: barber.commissionPct,
       commissionAmt,
       paymentMethod,
-      startedAt,
-      endedAt: new Date().toISOString(),
-      durationMins: Math.round((Date.now() - new Date(startedAt).getTime()) / 60000),
+      startedAt: now,
+      endedAt: now,
+      durationMins,
       notes: notes.trim() || undefined,
     };
 
     setIsSaving(true);
+    hapticImpact();
     try {
       await onSave(session);
-      toast.success(`Corte registrado — $${effectivePrice.toLocaleString('es-AR')} | Comisión: $${commissionAmt.toLocaleString('es-AR')}`);
+
+      // Si la liga está activa, registrar la entry vinculada
+      if (ligaActive && ligaConfig && barbershop) {
+        try {
+          const entry: LigaEntry = buildLigaEntry({
+            sessionId,
+            barbershopId: barbershop.id,
+            barberId: barber.id,
+            clientName: ligaState.clientNameSnapshot,
+            clientPhone: ligaState.clientPhoneSnapshot || undefined,
+            ligaClientId: ligaState.ligaClientId as string,
+            diceSum: ligaState.diceSum as number,
+            isService: ligaState.isService,
+            extraDiceCount: ligaState.extraDiceCount,
+            extraDiceSum: ligaState.extraDiceSum ?? 0,
+          });
+          await registerLigaEntry(entry);
+          toast.success(
+            `Corte registrado · ${entry.totalPoints} pts en la Liga 🏆`,
+            {
+              description: `Comisión: $${(commissionAmt + entry.extraDiceCommission).toLocaleString('es-AR')}`,
+            }
+          );
+        } catch (ligaErr: any) {
+          // El corte ya se guardó. NO cerrar el modal — el admin puede arreglar después
+          toast.error(
+            `El corte se guardó pero falló la Liga: ${ligaErr?.code ?? ''} ${ligaErr?.message ?? 'error'}`,
+            { duration: 8000 }
+          );
+          setIsSaving(false);
+          return;
+        }
+      } else {
+        toast.success(
+          `Corte registrado — $${effectivePrice.toLocaleString('es-AR')}`,
+          { description: `Comisión: $${commissionAmt.toLocaleString('es-AR')}` }
+        );
+      }
+
+      hapticSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(`Error al registrar: ${error?.message ?? 'Error desconocido'}`);
+      hapticError();
+      toast.error(`Error al registrar: ${error?.code ?? ''} ${error?.message ?? 'Error desconocido'}`);
+      // NO cerrar el modal — Lección 5
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b dark:border-white/10 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Scissors className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h2 className="font-bold text-gray-900 dark:text-white">Registrar Corte</h2>
-              <p className="text-xs text-gray-500 dark:text-slate-400">{barber.name} · {barber.commissionPct}% comisión</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full text-gray-400">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      title="Registrar corte"
+      subtitle={`${barber.name} · ${barber.commissionPct}% comisión`}
+      maxHeightVh={94}
+      footer={
+        <GlassButton
+          variant="primary"
+          size="xl"
+          fullWidth
+          loading={isSaving}
+          onClick={handleSubmit}
+          iconLeft={<Scissors className="w-5 h-5" />}
+        >
+          Registrar · ${effectivePrice.toLocaleString('es-AR')}
+        </GlassButton>
+      }
+    >
+      <div className="px-5 py-4 space-y-4">
+        {/* Cliente (solo cuando NO hay liga, porque la liga ya pide nombre) */}
+        {!ligaActive && (
+          <IOSInput
+            label="Cliente"
+            iconLeft={<User className="w-4 h-4" />}
+            placeholder="Nombre (opcional)"
+            value={''}
+            onChange={() => { /* sin liga, no usamos clientName aquí */ }}
+            disabled
+          />
+        )}
 
-        {/* Body */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto p-6 space-y-5">
-          {/* Cliente */}
+        {/* Servicio + Precio */}
+        <GlassCard variant="solid" padding="md" className="space-y-3">
           <div>
-            <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <User className="w-4 h-4" /> Cliente
-            </label>
-            <input
-              type="text"
-              value={clientName}
-              onChange={e => setClientName(e.target.value)}
-              placeholder="Nombre del cliente (opcional)"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
-
-          {/* Servicio */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Scissors className="w-4 h-4" /> Servicio
+            <label className="block text-[13px] font-medium text-ios-label2 dark:text-iosDark-label2 mb-1.5 ml-1">
+              Servicio
             </label>
             <select
               value={selectedServiceId}
-              onChange={e => setSelectedServiceId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+              onChange={(e) => setSelectedServiceId(e.target.value)}
+              className="w-full h-11 px-4 rounded-2xl bg-ios-grouped dark:bg-iosDark-grouped text-[15px] text-ios-label dark:text-iosDark-label border border-transparent focus:outline-none focus:border-ios-accent focus:bg-white dark:focus:bg-iosDark-bg2"
             >
               <option value="">— Precio libre —</option>
-              {services.map(s => (
+              {services.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name} — ${s.basePrice.toLocaleString('es-AR')}
                 </option>
@@ -124,80 +233,61 @@ const RegisterSessionModal: React.FC<RegisterSessionModalProps> = ({ barber, ser
             </select>
           </div>
 
-          {/* Precio */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <DollarSign className="w-4 h-4" /> Precio
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="50"
-              value={customPrice}
-              onChange={e => setCustomPrice(e.target.value)}
-              placeholder="$0"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-            {effectivePrice > 0 && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium">
-                Tu comisión: ${commissionAmt.toLocaleString('es-AR')} ({barber.commissionPct}%)
-              </p>
-            )}
-          </div>
+          <IOSInput
+            label="Precio"
+            iconLeft={<DollarSign className="w-4 h-4" />}
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={50}
+            value={customPrice}
+            onChange={(e) => setCustomPrice(e.target.value)}
+            placeholder="0"
+            error={submitAttempted && effectivePrice <= 0 ? 'Debe ser mayor a 0' : undefined}
+            helper={
+              effectivePrice > 0
+                ? `Tu comisión: $${commissionAmt.toLocaleString('es-AR')} (${barber.commissionPct}%)`
+                : undefined
+            }
+          />
+        </GlassCard>
 
-          {/* Método de pago */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2 block">Método de pago</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['CASH', 'CARD', 'TRANSFER'] as PaymentMethod[]).map(method => (
-                <button
-                  key={method}
-                  type="button"
-                  onClick={() => setPaymentMethod(method)}
-                  className={`py-2.5 rounded-xl text-sm font-semibold transition-all border ${
-                    paymentMethod === method
-                      ? 'bg-amber-500 text-white border-amber-500 shadow-md'
-                      : 'bg-gray-50 dark:bg-slate-800 text-gray-600 dark:text-slate-300 border-gray-200 dark:border-white/10 hover:border-amber-300'
-                  }`}
-                >
-                  {PAYMENT_METHOD_LABELS[method]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Notas */}
-          <div>
-            <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 block">Notas (opcional)</label>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              rows={2}
-              placeholder="Fade bajo, barba perfilada..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
-            />
-          </div>
-        </form>
-
-        {/* Footer */}
-        <div className="p-6 border-t dark:border-white/10 shrink-0">
-          <button
-            onClick={handleSubmit as any}
-            disabled={isSaving || effectivePrice <= 0}
-            className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-          >
-            {isSaving ? (
-              <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            ) : (
-              <>
-                <Scissors className="w-5 h-5" />
-                Registrar corte · ${effectivePrice.toLocaleString('es-AR')}
-              </>
-            )}
-          </button>
+        {/* Método de pago */}
+        <div>
+          <label className="block text-[13px] font-medium text-ios-label2 dark:text-iosDark-label2 mb-1.5 ml-1">
+            Método de pago
+          </label>
+          <SegmentedControl<PaymentMethod>
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            segments={(['CASH', 'CARD', 'TRANSFER'] as PaymentMethod[]).map((m) => ({
+              value: m,
+              label: PAYMENT_METHOD_LABELS[m],
+              icon: PAYMENT_ICONS[m],
+            }))}
+          />
         </div>
+
+        {/* Notas */}
+        <IOSInput
+          label="Notas"
+          placeholder="Fade bajo, barba perfilada..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+
+        {/* Liga */}
+        {ligaActive && ligaConfig && barbershop && (
+          <LigaSection
+            barbershopId={barbershop.id}
+            config={ligaConfig}
+            state={ligaState}
+            onChange={setLigaState}
+            showClientError={submitAttempted}
+          />
+        )}
       </div>
-    </div>
+    </BottomSheet>
   );
 };
 

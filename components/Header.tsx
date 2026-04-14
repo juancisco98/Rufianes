@@ -76,7 +76,7 @@ const Header: React.FC<HeaderProps> = ({
 
     return (
         <div className="absolute top-0 left-0 right-0 z-[800] p-3 sm:p-4 pointer-events-none">
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl shadow-lg dark:shadow-black/30 rounded-2xl sm:rounded-full p-2 sm:p-2.5 flex items-center gap-2 pointer-events-auto max-w-full xl:max-w-7xl mx-auto border border-white/60 dark:border-white/10">
+            <div className="bg-white/72 dark:bg-iosDark-surface backdrop-blur-iosLg shadow-ios dark:shadow-black/30 rounded-2xl sm:rounded-full p-2 sm:p-2.5 flex items-center gap-2 pointer-events-auto max-w-full xl:max-w-7xl mx-auto border border-ios-border dark:border-iosDark-border">
 
                 {/* Left: menu + logo */}
                 <div className="flex items-center gap-2 shrink-0">
@@ -106,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder="Buscar dirección..."
-                                className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-800/80 border border-gray-200/60 dark:border-white/10 text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/60 transition-all"
+                                className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-800/80 border border-ios-border dark:border-iosDark-border text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/60 transition-all"
                             />
                             {isSearching && (
                                 <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-amber-500" />
@@ -152,8 +152,8 @@ const Header: React.FC<HeaderProps> = ({
                         </button>
 
                         {showNotifications && (
-                            <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl dark:shadow-black/40 z-[900] overflow-hidden">
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10 bg-gray-50/80 dark:bg-white/5">
+                            <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white dark:bg-iosDark-bg2 border border-ios-border dark:border-iosDark-border rounded-2xl shadow-2xl dark:shadow-black/40 z-[900] overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-ios-border dark:border-iosDark-border bg-gray-50/80 dark:bg-white/5">
                                     <div className="flex items-center gap-2">
                                         <Bell className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                         <span className="font-bold text-sm text-slate-800 dark:text-white">Notificaciones</span>
@@ -191,7 +191,7 @@ const Header: React.FC<HeaderProps> = ({
                                                         ? notif.type === 'SHIFT_CLOSED' ? 'bg-emerald-50/60 dark:bg-emerald-500/10'
                                                         : notif.type === 'SHIFT_PENDING' ? 'bg-amber-50/60 dark:bg-amber-500/10'
                                                         : 'bg-indigo-50/60 dark:bg-indigo-500/10'
-                                                        : 'hover:bg-gray-50 dark:hover:bg-white/5'
+                                                        : 'hover:bg-ios-grouped dark:hover:bg-iosDark-grouped'
                                                 }`}
                                             >
                                                 <div className={`mt-0.5 p-1.5 rounded-full shrink-0 ${
