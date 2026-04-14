@@ -20,32 +20,72 @@ if (supabaseUrl && supabaseAnonKey) {
     logger.warn('[Supabase] Missing env vars. Running in offline mode.');
 }
 
-// Export a proxy that won't crash when supabase is null.
-// All .from() calls will return errors caught by data hooks' try/catch.
+// Fallback cuando faltan env vars: un query builder falso que soporta
+// encadenamiento arbitrario (.select().eq().gte().order().limit().maybeSingle()…)
+// y al final devuelve { data: [] | null, error }. También soporta channel/on/subscribe.
+// Así la app no crashea con TypeError — solo muestra estado vacío.
+const OFFLINE_ERROR = { message: 'Supabase not configured (Missing Envs)' };
+
+type ThenableBuilder = {
+    [key: string]: unknown;
+    then: (resolve: (v: { data: null; error: typeof OFFLINE_ERROR }) => unknown) => unknown;
+};
+
+const makeOfflineBuilder = (): ThenableBuilder => {
+    const builder: ThenableBuilder = new Proxy({} as ThenableBuilder, {
+        get(_t, prop) {
+            // Soporte await: si alguien hace `await supabase.from('x').select('*')`, esto resuelve.
+            if (prop === 'then') {
+                return (resolve: (v: { data: null; error: typeof OFFLINE_ERROR }) => unknown) =>
+                    resolve({ data: null, error: OFFLINE_ERROR });
+            }
+            // Cualquier otro método (select, eq, gte, order, limit, maybeSingle, etc.)
+            // devuelve el mismo builder para permitir encadenamiento.
+            return () => builder;
+        },
+    });
+    return builder;
+};
+
+const makeOfflineChannel = () => {
+    const channel: { [k: string]: unknown } = {};
+    channel.on = () => channel;
+    channel.subscribe = () => channel;
+    channel.unsubscribe = () => Promise.resolve('ok');
+    return channel;
+};
+
 export const supabase: SupabaseClient = supabaseInstance || new Proxy({} as SupabaseClient, {
     get(_target, prop) {
-        if (prop === 'from') {
-            return () => new Proxy({}, {
-                get(_t, method) {
-                    // Return empty data for select/insert/update/delete prevents crashes
-                    if (['select', 'insert', 'update', 'delete', 'upsert'].includes(method as string)) {
-                        logger.error(`[Supabase Proxy] Attempted ${String(method)} on missing client.`);
-                        return () => Promise.resolve({ data: [], error: { message: 'Supabase not configured (Missing Envs)' } });
-                    }
-                    return () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } });
-                }
-            });
+        if (prop === 'from' || prop === 'rpc') {
+            return () => makeOfflineBuilder();
+        }
+        if (prop === 'channel') {
+            return () => makeOfflineChannel();
+        }
+        if (prop === 'removeChannel' || prop === 'removeAllChannels') {
+            return () => Promise.resolve('ok');
         }
         if (prop === 'auth') {
             return {
-                signInWithOAuth: () => Promise.resolve({ error: { message: 'Supabase Auth not configured' } }),
+                signInWithOAuth: () => Promise.resolve({ error: OFFLINE_ERROR }),
                 signOut: () => Promise.resolve({ error: null }),
                 onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => { } } } }),
                 getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-            }
+                getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+            };
         }
-        return () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } });
-    }
+        if (prop === 'storage') {
+            return {
+                from: () => ({
+                    upload: () => Promise.resolve({ data: null, error: OFFLINE_ERROR }),
+                    download: () => Promise.resolve({ data: null, error: OFFLINE_ERROR }),
+                    getPublicUrl: () => ({ data: { publicUrl: '' } }),
+                }),
+            };
+        }
+        return () => makeOfflineBuilder();
+    },
 });
 
 import { Capacitor } from '@capacitor/core';
